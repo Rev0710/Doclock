@@ -326,11 +326,6 @@ body, #root {
 .btn-login:hover {
     background: #0ea5e9;
 }
-/* ═══════════════════════════════════════════════════
-   DOCLOCK — GLOBAL STYLES & DESIGN TOKENS
-   index.css
-═══════════════════════════════════════════════════ */
-
 
 /* ── CSS DESIGN TOKENS ── */
 :root {
