@@ -28,11 +28,6 @@ api.interceptors.response.use(
   }
 )
 
-/* ─────────────────────────────────────────────────
-   API helper functions
-   (Swap these out when real backend is ready)
-───────────────────────────────────────────────── */
-
 /* Auth */
 export const authAPI = {
   login:    (data)   => api.post('/auth/login', data),
