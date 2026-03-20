@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AppointmentCard from '../components/AppointmentCard.jsx'
 import './Dashboard.css'
-
+import ProfileTab from '../components/ProfileTab.jsx'
 /* ── Mock data (replace with real API calls) ── */
 const MOCK_APPOINTMENTS = [
   { id: 1, doctor: 'Dr. Sarah Williams', specialty: 'Cardiologist',   date: '2026-03-22', time: '10:00 AM', status: 'confirmed', avatar: 'SW', type: 'In-Person' },
@@ -224,6 +224,9 @@ export default function Dashboard() {
         )}
 
         {/* ─────────── DOCTORS TAB ─────────── */}
+       
+
+{sideNav === 'profile' && <ProfileTab />}
         {sideNav === 'doctors' && (
           <div className="anim-fade-up">
             <p style={{ color: 'var(--slate-500)', marginBottom: 24 }}>

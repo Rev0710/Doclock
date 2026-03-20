@@ -54,7 +54,7 @@ export default function BookAppointment() {
   /* ── SUCCESS SCREEN ── */
   if (success) return (
     <div className="book-page">
-      <Navbar />
+  
       <div className="book-success anim-scale-in">
         <div className="success-icon">🎉</div>
         <h2 className="success-title">Appointment Booked!</h2>
@@ -79,13 +79,12 @@ export default function BookAppointment() {
           </button>
         </div>
       </div>
-      <Footer />
     </div>
   )
 
   return (
     <div className="book-page">
-      <Navbar />
+      
 
       <div className="book-container">
         {/* ── STEP 1: DOCTOR LIST ── */}
@@ -301,7 +300,6 @@ export default function BookAppointment() {
         )}
       </div>
 
-      <Footer />
     </div>
   )
 }
