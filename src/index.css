@@ -1,0 +1,586 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap');
+
+body {
+  margin: 0;
+}
+.loading-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--light-gray);
+  color: var(--black);
+}
+
+.loader {
+  border: 6px solid var(--light-gray);
+  border-top: 6px solid var(--primary-blue);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+.loading-screen h2 {
+  color: var(--primary-blue);
+}
+
+.loading-screen p {
+  color: var(--black);
+  opacity: 0.7;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-form {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 350px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.login-form {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 350px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: left; /* IMPORTANT for alignment */
+}
+
+.login-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #38bdf8;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    background: #38bdf8;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.btn-login:hover {
+    background: #0ea5e9;
+}
+
+.switch-text {
+    margin-top: 12px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.switch-text span {
+    color: #38bdf8;
+    cursor: pointer;
+}
+body, #root {
+    height: 100%;
+    margin: 0;
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex: 1;
+}
+body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+}
+.login-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* REMOVE full background feeling */
+    padding: 40px 20px;
+}
+
+.login-container {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 350px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.login-container input {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background: #38bdf8;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.login-container button:hover {
+    background: #0ea5e9;
+}
+body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+}
+.login-container {
+    flex: 1; /* allows it to take available space */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.login-form {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 350px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* This is the key for PC centering */
+.main-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.login-form {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 350px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+/* Input group */
+.input-group {
+    position: relative;
+    margin: 20px 0;
+}
+
+/* Inputs */
+.input-group input {
+    width: 70%;
+    padding: 12px 40px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    font-size: 14px;
+}
+
+/* Floating label */
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #888;
+    pointer-events: none;
+    transition: 0.3s ease;
+}
+
+/* Move label when typing/focus */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: -8px;
+    left: 35px;
+    font-size: 12px;
+    background: white;
+    padding: 0 5px;
+}
+
+/* Icons */
+.icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+/* Eye toggle */
+.toggle-eye {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+}
+
+/* Button */
+.btn-login {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    background: #38bdf8;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-login:hover {
+    background: #0ea5e9;
+}
+/* ═══════════════════════════════════════════════════
+   DOCLOCK — GLOBAL STYLES & DESIGN TOKENS
+   index.css
+═══════════════════════════════════════════════════ */
+
+
+/* ── CSS DESIGN TOKENS ── */
+:root {
+  /* Brand Blues */
+  --blue-50:  #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+
+  /* Neutrals */
+  --slate-50:  #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+
+  /* Semantic */
+  --green-100: #dcfce7;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --red-100:   #fee2e2;
+  --red-500:   #ef4444;
+  --red-600:   #dc2626;
+  --orange-100:#ffedd5;
+  --orange-400:#fb923c;
+  --orange-500:#f97316;
+  --yellow-100:#fef9c3;
+  --yellow-500:#eab308;
+
+  /* Typography */
+  --font-body:    'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Syne', system-ui, sans-serif;
+
+  /* Radius */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,.12);
+  --shadow-xl:  0 24px 64px rgba(0,0,0,.16);
+  --shadow-blue:0 4px 20px rgba(37,99,235,.3);
+
+  /* Transitions */
+  --transition: all .2s ease;
+  --transition-slow: all .35s ease;
+
+  /* Spacing base */
+  --sidebar-width: 240px;
+  --topbar-height: 72px;
+}
+
+/* ── RESET ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--slate-50);
+  color: var(--slate-800);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, select, textarea {
+  font-family: var(--font-body);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--slate-100); }
+::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--slate-400); }
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .5; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+/* ── ANIMATION UTILITIES ── */
+.anim-fade-up    { animation: fadeUp      .5s ease both; }
+.anim-fade-in    { animation: fadeIn      .4s ease both; }
+.anim-slide-in   { animation: slideInRight .45s ease both; }
+.anim-scale-in   { animation: scaleIn    .35s ease both; }
+.delay-1 { animation-delay: .07s; }
+.delay-2 { animation-delay: .14s; }
+.delay-3 { animation-delay: .21s; }
+.delay-4 { animation-delay: .28s; }
+.delay-5 { animation-delay: .35s; }
+
+/* ═══════════════════════════════════
+   LoadingScreen.css
+═══════════════════════════════════ */
+
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--blue-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  z-index: 1;
+  animation: fadeUp 0.6s ease both;
+}
+
+.loading-logo {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.logo-doc  { color: #fff; }
+.logo-lock { color: rgba(255, 255, 255, 0.55); }
+
+.loading-spinner-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin: 4px 0;
+}
+
+.loading-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-right-color: rgba(255, 255, 255, 0.3);
+  animation: spin 1s linear infinite;
+}
+
+.loading-ring.delay {
+  inset: 8px;
+  border-top-color: rgba(255, 255, 255, 0.5);
+  border-right-color: transparent;
+  animation-duration: 0.75s;
+  animation-direction: reverse;
+}
+
+.loading-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.3px;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* ── Background decoration circles ── */
+.loading-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+.loading-bg-circle--1 {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -200px;
+}
+
+.loading-bg-circle--2 {
+  width: 400px;
+  height: 400px;
+  bottom: -150px;
+  left: -150px;
+}
+
+
