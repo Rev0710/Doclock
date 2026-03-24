@@ -16,30 +16,25 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, phone, password, role } = req.body;
 
-    // Check for missing fields
     if (!name || !email || !phone || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check duplicate email
     const emailExists = await User.findOne({ email: email.toLowerCase() });
     if (emailExists) {
       return res.status(400).json({ message: "An account with this email already exists" });
     }
 
-    // Check duplicate phone
     const phoneExists = await User.findOne({ phone });
     if (phoneExists) {
       return res.status(400).json({ message: "An account with this phone number already exists" });
     }
 
-    // Hash password manually
     const hashedPassword = bcrypt.hashSync(password, 10);
 
-    // Create new user with hashed password
     const user = await User.create({
       name,
-      email,
+      email: email.toLowerCase(),
       phone,
       password: hashedPassword,
       role,
@@ -60,7 +55,7 @@ const registerUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("REGISTER ERROR:", error.message)
+    console.log("REGISTER ERROR:", error.message);
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       return res.status(400).json({ message: `This ${field} is already registered` });
@@ -76,17 +71,24 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log("LOGIN ATTEMPT:", email);        // ✅ debug line 1
+
     if (!email || !password) {
       return res.status(400).json({ message: "Please provide email and password" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    console.log("USER FOUND:", user ? "YES" : "NO");  // ✅ debug line 2
+
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Compare password directly here
     const isMatch = bcrypt.compareSync(password, user.password);
+
+    console.log("PASSWORD MATCH:", isMatch ? "YES" : "NO"); // ✅ debug line 3
+
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
