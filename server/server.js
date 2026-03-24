@@ -13,7 +13,8 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  // Use an environment variable for the origin so it works in production
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', 
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -29,15 +30,17 @@ app.use("/api/appointments", appointmentRoutes);
 // Health check
 app.get("/", (req, res) => res.json({ message: "DocLock API is running 🔒" }));
 
-// MongoDB Connection
+// MongoDB Connection (Move logic outside of .then for Vercel)
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB Connected");
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("MongoDB connection failed:", err.message));
+
+// Export the app for Vercel
+module.exports = app; 
+
+// Only listen if running locally
+if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error("MongoDB connection failed:", err.message);
-    process.exit(1);
-  });
+}
