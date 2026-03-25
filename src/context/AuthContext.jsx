@@ -71,4 +71,22 @@ export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
   return ctx
+
+const deleteProfile = async () => {
+    try {
+      await axios.delete(`${API_URL}/api/users/profile`);
+      logout(); // Call existing logout to clear localStorage and state
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  return (
+    <AuthContext.Provider value={{ 
+      user, loading, login, register, logout, updateProfile, deleteProfile 
+    }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }

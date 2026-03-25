@@ -21,7 +21,31 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     default: "user"
-  }
-}, { timestamps: true });
+  },
+  address: { 
+    type: String 
+  },
+  city: { 
+    type: String 
+  },
+  state: { 
+    type: String 
+  },
+  zipCode: { 
+    type: String 
+  },
+  country: { 
+    type: String 
+  },
+  gender: { 
+    type: String 
+  },
+  birthDate: { 
+    type: Date 
+  },
+}, 
+{ timestamps: true });
 
-module.exports = mongoose.model("User", userSchema);
+
+
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);

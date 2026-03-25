@@ -66,5 +66,16 @@ router.put("/profile", protect, async (req, res) => {
     res.status(500).json({ message: error.message || "Server error" })
   }
 })
+router.delete("/profile", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    await user.deleteOne();
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+});
 
 module.exports = router
