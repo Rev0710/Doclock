@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AppointmentCard from '../components/AppointmentCard.jsx'
 import './Dashboard.css'
 import ProfileTab from '../components/ProfileTab.jsx'
+
 /* ── Mock data (replace with real API calls) ── */
 const MOCK_APPOINTMENTS = [
   { id: 1, doctor: 'Dr. Sarah Williams', specialty: 'Cardiologist',   date: '2026-03-22', time: '10:00 AM', status: 'confirmed', avatar: 'SW', type: 'In-Person' },
@@ -39,21 +40,18 @@ export default function Dashboard() {
     )
   }
 
-  /* ── Calendar ── */
-  const firstDay     = new Date(calYear, calMonth, 1).getDay()
-  const daysInMonth  = new Date(calYear, calMonth + 1, 0).getDate()
-  const apptDays     = appointments
+  /* ── Calendar Logic ── */
+  const apptDays = appointments
     .filter(a => a.date.startsWith(`${calYear}-${String(calMonth + 1).padStart(2, '0')}`))
     .map(a => parseInt(a.date.split('-')[2]))
 
   const today = new Date()
 
-  /* ── Stats ── */
   const stats = [
-    { label: 'Total Appointments', value: appointments.length,                                   icon: '📅', color: '#eff6ff', textColor: 'var(--blue-600)' },
-    { label: 'Confirmed',          value: appointments.filter(a => a.status === 'confirmed').length, icon: '✅', color: '#f0fdf4', textColor: 'var(--green-600)' },
-    { label: 'Pending',            value: appointments.filter(a => a.status === 'pending').length,   icon: '🕐', color: '#fff7ed', textColor: '#ea580c' },
-    { label: 'Cancelled',          value: appointments.filter(a => a.status === 'cancelled').length, icon: '❌', color: '#fef2f2', textColor: 'var(--red-600)' },
+    { label: 'Total Appointments', value: appointments.length, icon: '📅', color: '#eff6ff', textColor: 'var(--blue-600)' },
+    { label: 'Confirmed', value: appointments.filter(a => a.status === 'confirmed').length, icon: '✅', color: '#f0fdf4', textColor: 'var(--green-600)' },
+    { label: 'Pending', value: appointments.filter(a => a.status === 'pending').length, icon: '🕐', color: '#fff7ed', textColor: '#ea580c' },
+    { label: 'Cancelled', value: appointments.filter(a => a.status === 'cancelled').length, icon: '❌', color: '#fef2f2', textColor: 'var(--red-600)' },
   ]
 
   const navItems = [
@@ -68,7 +66,6 @@ export default function Dashboard() {
       {/* ── SIDEBAR ── */}
       <aside className="dash-sidebar">
         <div className="sidebar-logo">Doc<span>Lock</span></div>
-
         <nav className="sidebar-nav">
           <p className="sidebar-section-label">MAIN</p>
           {navItems.map(n => (
@@ -106,7 +103,6 @@ export default function Dashboard() {
 
       {/* ── MAIN CONTENT ── */}
       <main className="dash-main">
-        {/* Topbar */}
         <header className="dash-topbar">
           <div>
             <h1 className="dash-page-title">
@@ -128,14 +124,9 @@ export default function Dashboard() {
         {/* ─────────── DASHBOARD TAB ─────────── */}
         {sideNav === 'dashboard' && (
           <div className="anim-fade-up">
-            {/* Stats */}
             <div className="stats-grid">
               {stats.map((s, i) => (
-                <div
-                  key={s.label}
-                  className="stat-card anim-fade-up"
-                  style={{ animationDelay: `${i * 0.06}s` }}
-                >
+                <div key={s.label} className="stat-card anim-fade-up" style={{ animationDelay: `${i * 0.06}s` }}>
                   <div className="stat-icon" style={{ background: s.color, fontSize: 22 }}>{s.icon}</div>
                   <p className="stat-value" style={{ color: s.textColor }}>{s.value}</p>
                   <p className="stat-label">{s.label}</p>
@@ -143,9 +134,7 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Two-col grid */}
             <div className="dash-two-col">
-              {/* Left: Appointments */}
               <div>
                 <div className="section-bar">
                   <h2 className="section-bar-title">Upcoming Appointments</h2>
@@ -153,12 +142,7 @@ export default function Dashboard() {
                 </div>
                 <div className="appt-list">
                   {appointments.filter(a => a.status !== 'cancelled').slice(0, 3).map(a => (
-                    <AppointmentCard
-                      key={a.id}
-                      appointment={a}
-                      onCancel={handleCancel}
-                      onView={setDetailAppt}
-                    />
+                    <AppointmentCard key={a.id} appointment={a} onCancel={handleCancel} onView={setDetailAppt} />
                   ))}
                   {appointments.length === 0 && (
                     <div className="empty-state">
@@ -169,7 +153,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Right: Calendar + Quick Doctors */}
               <div className="dash-right-col">
                 <Calendar
                   month={calMonth} year={calYear}
@@ -178,7 +161,6 @@ export default function Dashboard() {
                   onNext={() => { if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1)}else setCalMonth(m=>m+1) }}
                   onSelect={setSelDate}
                 />
-
                 <div style={{ marginTop: 20 }}>
                   <div className="section-bar">
                     <h2 className="section-bar-title">Top Doctors</h2>
@@ -212,21 +194,13 @@ export default function Dashboard() {
             </div>
             <div className="appt-list">
               {appointments.map(a => (
-                <AppointmentCard
-                  key={a.id}
-                  appointment={a}
-                  onCancel={handleCancel}
-                  onView={setDetailAppt}
-                />
+                <AppointmentCard key={a.id} appointment={a} onCancel={handleCancel} onView={setDetailAppt} />
               ))}
             </div>
           </div>
         )}
 
         {/* ─────────── DOCTORS TAB ─────────── */}
-       
-
-{sideNav === 'profile' && <ProfileTab />}
         {sideNav === 'doctors' && (
           <div className="anim-fade-up">
             <p style={{ color: 'var(--slate-500)', marginBottom: 24 }}>
@@ -239,40 +213,9 @@ export default function Dashboard() {
         )}
 
         {/* ─────────── PROFILE TAB ─────────── */}
-        {sideNav === 'profile' && (
-          <div className="anim-fade-up profile-section">
-            <div className="profile-card">
-              <div className="profile-avatar-lg">{user?.name?.charAt(0) || 'U'}</div>
-              <div>
-                <h2 className="profile-name">{user?.name || 'Guest User'}</h2>
-                <p className="profile-email">{user?.email || '—'}</p>
-                <span className="profile-role-badge">{user?.role || 'patient'}</span>
-              </div>
-            </div>
-            <div className="profile-fields">
-              {[
-                ['Full Name',    user?.name  || ''],
-                ['Email',        user?.email || ''],
-                ['Phone',        user?.phone || '+63 9XX XXX XXXX'],
-                ['Date of Birth','January 15, 1992'],
-                ['Gender',       'Male'],
-                ['Address',      'Iloilo City, Western Visayas'],
-              ].map(([label, val]) => (
-                <div key={label} className="profile-field">
-                  <label className="pf-label">{label}</label>
-                  <input className="pf-input" defaultValue={val} />
-                </div>
-              ))}
-              <button
-                className="dash-book-btn"
-                style={{ marginTop: 8 }}
-                onClick={() => alert('Profile saved! (hook up to API)')}
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        )}
+        {/* FIX: Removed the redundant hardcoded profile HTML and used ONLY the ProfileTab component */}
+        {sideNav === 'profile' && <ProfileTab />}
+
       </main>
 
       {/* ── DETAIL MODAL ── */}
@@ -360,13 +303,11 @@ function Calendar({ month, year, apptDays, selDate, onPrev, onNext, onSelect }) 
   )
 }
 
-/* ── Sidebar icons ── */
-const IcoGrid    = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+/* ── Icons ── */
+const IcoGrid     = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
 const IcoCalendar= () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-const IcoUsers   = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-const IcoUser    = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-const IcoShield  = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-const IcoLogout  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-const IcoBell    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-
-const MONTHS_CONST = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const IcoUsers    = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+const IcoUser     = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+const IcoShield   = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+const IcoLogout   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+const IcoBell     = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
