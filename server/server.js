@@ -28,7 +28,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
 // Health check
-app.get("/", (req, res) => res.json({ message: "DocLock API is running 🔒" }));
+app.get("/", (req, res) => res.json({ message: "DocLock API is running" }));
 
 // MongoDB Connection (Move logic outside of .then for Vercel)
 mongoose
