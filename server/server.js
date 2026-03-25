@@ -1,3 +1,12 @@
+app.get("/test-db", async (req, res) => {
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState === 1) {
+    res.send("Database is CONNECTED! ");
+  } else {
+    res.send("Database is NOT connected ");
+  }
+});
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
