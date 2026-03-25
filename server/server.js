@@ -3,6 +3,13 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
+app.use(cors({
+  origin: 'https://doclock.vercel.app', // Your Frontend URL
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 dotenv.config();
 
 const authRoutes = require("./routes/authRoutes");
