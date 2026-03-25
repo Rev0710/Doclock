@@ -1,23 +1,7 @@
-app.get("/test-db", async (req, res) => {
-  const mongoose = require('mongoose');
-  if (mongoose.connection.readyState === 1) {
-    res.send("Database is CONNECTED! ");
-  } else {
-    res.send("Database is NOT connected ");
-  }
-});
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
-
-app.use(cors({
-  origin: 'https://doclock.vercel.app', // Your Frontend URL
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
 
 dotenv.config();
 
@@ -29,10 +13,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  // Use an environment variable for the origin so it works in production
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', 
+  // Add your actual Vercel frontend URL here explicitly to be safe
+  origin: ["https://doclock.vercel.app", "http://localhost:5173", "http://localhost:3000"].filter(Boolean),
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
@@ -51,6 +35,12 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.error("MongoDB connection failed:", err.message));
+
+  // Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Internal Server Error", error: err.message });
+});
 
 // Export the app for Vercel
 module.exports = app; 
