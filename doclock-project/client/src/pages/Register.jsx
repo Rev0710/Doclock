@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import './Login.css'
+import './Login.css' // Ensure the CSS below is added to this file
 
 export default function Register() {
-  const { register } = useAuth() // This function must save token to localStorage
+  const { register } = useAuth() 
   const navigate = useNavigate()
 
   const todayDate = new Date().toISOString().split('T')[0];
@@ -44,7 +44,6 @@ export default function Register() {
     setErrors({});
 
     try {
-      // 1. Sending cleaned data to the backend
       const userData = await register({
         name: `${form.firstName.trim()} ${form.lastName.trim()}`,
         email: form.email.toLowerCase().trim(),
@@ -56,8 +55,6 @@ export default function Register() {
         birthDate: form.birthDate,
       });
 
-      // 2. Logic to direct user to the correct dashboard based on role
-      // If the register function was successful, navigate:
       if (userData?.role === 'doctor') {
         navigate('/doctor-dashboard', { replace: true });
       } else {
@@ -65,10 +62,8 @@ export default function Register() {
       }
       
     } catch (err) {
-      // 3. Informative error message from your Backend
       const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
       setErrors({ api: errorMessage });
-      console.error("Registration Error:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
@@ -81,6 +76,7 @@ export default function Register() {
 
   return (
     <div className="auth-page">
+      {/* Visual Side Panel */}
       <div className="auth-visual">
         <div className="auth-visual-inner">
           <div className="auth-logo">Doc<span>Lock</span></div>
@@ -102,6 +98,7 @@ export default function Register() {
         <div className="auth-bg-blob auth-bg-blob--1" />
       </div>
 
+      {/* Main Registration Form Panel */}
       <div className="auth-form-panel">
         <div className="auth-form-box anim-fade-up">
           <div className="auth-form-header">
@@ -115,15 +112,17 @@ export default function Register() {
             <div className="field-grid-2">
               <div className="field-group">
                 <label className="field-label">First Name</label>
-                <div className={`field-wrap ${errors.firstName ? 'error' : ''}`}>
-                  <input type="text" className="field-input" placeholder="John" value={form.firstName} onChange={set('firstName')} />
+                <div className={`field-wrap-modern ${errors.firstName ? 'error' : ''}`}>
+                  <IconUser />
+                  <input type="text" placeholder="Johnrev" value={form.firstName} onChange={set('firstName')} />
                 </div>
                 {errors.firstName && <p className="field-error">{errors.firstName}</p>}
               </div>
               <div className="field-group">
                 <label className="field-label">Last Name</label>
-                <div className={`field-wrap ${errors.lastName ? 'error' : ''}`}>
-                  <input type="text" className="field-input" placeholder="Doe" value={form.lastName} onChange={set('lastName')} />
+                <div className={`field-wrap-modern ${errors.lastName ? 'error' : ''}`}>
+                  <IconUser />
+                  <input type="text" placeholder="Delarosa" value={form.lastName} onChange={set('lastName')} />
                 </div>
                 {errors.lastName && <p className="field-error">{errors.lastName}</p>}
               </div>
@@ -131,8 +130,9 @@ export default function Register() {
 
             <div className="field-group">
               <label className="field-label">Email Address</label>
-              <div className={`field-wrap ${errors.email ? 'error' : ''}`}>
-                <input type="email" className="field-input" placeholder="john@example.com" value={form.email} onChange={set('email')} />
+              <div className={`field-wrap-modern ${errors.email ? 'error' : ''}`}>
+                <IconMail />
+                <input type="email" placeholder="jrevdelarosa1@gmail.com" value={form.email} onChange={set('email')} />
               </div>
               {errors.email && <p className="field-error">{errors.email}</p>}
             </div>
@@ -140,57 +140,78 @@ export default function Register() {
             <div className="field-grid-2">
               <div className="field-group">
                 <label className="field-label">Gender</label>
-                <select className="field-select" value={form.gender} onChange={set('gender')}>
-                  <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
+                <div className="field-wrap-modern">
+                  <select value={form.gender} onChange={set('gender')}>
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
                 {errors.gender && <p className="field-error">{errors.gender}</p>}
               </div>
               <div className="field-group">
                 <label className="field-label">Birth Date</label>
-                <input type="date" className="field-input" min={minDate} max={todayDate} value={form.birthDate} onChange={set('birthDate')} />
+                <div className="field-wrap-modern">
+                  <input type="date" min={minDate} max={todayDate} value={form.birthDate} onChange={set('birthDate')} />
+                </div>
                 {errors.birthDate && <p className="field-error">{errors.birthDate}</p>}
               </div>
             </div>
 
             <div className="field-group">
               <label className="field-label">Home Address</label>
-              <input type="text" className="field-input" placeholder="Street, City" value={form.address} onChange={set('address')} />
+              <div className="field-wrap-modern">
+                <input type="text" placeholder="Iloilo Circumferential Rd 1" value={form.address} onChange={set('address')} />
+              </div>
               {errors.address && <p className="field-error">{errors.address}</p>}
             </div>
 
             <div className="field-group">
               <label className="field-label">Phone Number</label>
-              <input type="tel" className="field-input" placeholder="+63 9XX" value={form.phone} onChange={set('phone')} />
+              <div className={`field-wrap-modern ${errors.phone ? 'error' : ''}`}>
+                <IconPhone />
+                <input type="tel" placeholder="+639915043354" value={form.phone} onChange={set('phone')} />
+              </div>
               {errors.phone && <p className="field-error">{errors.phone}</p>}
             </div>
 
             <div className="field-grid-2">
               <div className="field-group">
                 <label className="field-label">Password</label>
-                <div className={`field-wrap ${errors.password ? 'error' : ''}`}>
-                  <input type={showPass ? 'text' : 'password'} className="field-input" value={form.password} onChange={set('password')} />
-                  <button type="button" className="field-eye" onClick={() => setShowPass(!showPass)}>👁️</button>
+                <div className={`field-wrap-modern ${errors.password ? 'error' : ''}`}>
+                  <IconLock />
+                  <input type={showPass ? 'text' : 'password'} value={form.password} onChange={set('password')} />
+                  <button type="button" className="eye-toggle" onClick={() => setShowPass(!showPass)}>
+                    {showPass ? <IconEyeOff /> : <IconEye />}
+                  </button>
                 </div>
+                {errors.password && <p className="field-error">{errors.password}</p>}
               </div>
               <div className="field-group">
                 <label className="field-label">Confirm</label>
-                <div className={`field-wrap ${errors.confirm ? 'error' : ''}`}>
-                  <input type={showPass ? 'text' : 'password'} className="field-input" value={form.confirm} onChange={set('confirm')} />
+                <div className={`field-wrap-modern ${errors.confirm ? 'error' : ''}`}>
+                  <IconLock />
+                  <input type={showPass ? 'text' : 'password'} value={form.confirm} onChange={set('confirm')} />
                 </div>
+                {errors.confirm && <p className="field-error">{errors.confirm}</p>}
               </div>
             </div>
 
             <div className="field-group">
               <label className="field-label">I am a</label>
-              <select className="field-select" value={form.role} onChange={set('role')}>
-                <option value="patient">Patient</option>
-                <option value="doctor">Doctor</option>
-              </select>
+              <div className="field-wrap-modern">
+                <select value={form.role} onChange={set('role')}>
+                  <option value="patient">Patient</option>
+                  <option value="doctor">Doctor</option>
+                </select>
+              </div>
             </div>
 
-            <button type="submit" className="auth-submit-btn" disabled={loading}>
+            <p className="terms-text">
+              By creating an account you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+            </p>
+
+            <button type="submit" className="auth-submit-btn-modern" disabled={loading}>
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
@@ -204,10 +225,10 @@ export default function Register() {
   )
 }
 
-/* ── Icons (Kept as they were) ── */
-const IconUser  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-const IconMail  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-const IconPhone = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-const IconLock  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-const IconEye   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-const IconEyeOff= () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+/* ── Inline Icon Components ── */
+const IconUser  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+const IconMail  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+const IconPhone = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+const IconLock  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+const IconEye   = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+const IconEyeOff= () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>

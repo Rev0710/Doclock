@@ -371,3 +371,108 @@
   .auth-visual { display: none; }
   .auth-form-panel { padding: 40px 24px; }
 }
+
+/* Container for input + icon */
+.field-wrap-modern {
+  display: flex;
+  align-items: center;
+  background-color: #eff6ff; /* Soft blue tint from photo 2 */
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0 14px;
+  height: 48px;
+  transition: all 0.2s ease;
+}
+
+/* Change color when user clicks into the field */
+.field-wrap-modern:focus-within {
+  background-color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Error state styling */
+.field-wrap-modern.error {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+/* Icon style */
+.field-wrap-modern svg {
+  color: #94a3b8;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* Clean input & select resets */
+.field-wrap-modern input, 
+.field-wrap-modern select {
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: #1e293b;
+  height: 100%;
+}
+
+/* Password eye button styling */
+.eye-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+}
+
+.eye-toggle:hover {
+  color: #64748b;
+}
+
+/* Terms and Privacy text block */
+.terms-text {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 15px 0;
+}
+
+.terms-text a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* Blue primary button with the shadow from the photo */
+.auth-submit-btn-modern {
+  width: 100%;
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.4);
+  transition: background 0.2s ease;
+}
+
+.auth-submit-btn-modern:hover {
+  background-color: #1d4ed8;
+}
+
+.auth-submit-btn-modern:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Grid for side-by-side fields */
+.field-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
