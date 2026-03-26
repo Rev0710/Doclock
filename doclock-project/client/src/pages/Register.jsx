@@ -114,7 +114,7 @@ export default function Register() {
                 <label className="field-label">First Name</label>
                 <div className={`field-wrap-modern ${errors.firstName ? 'error' : ''}`}>
                   <IconUser />
-                  <input type="text" placeholder="Johnrev" value={form.firstName} onChange={set('firstName')} />
+                  <input type="text" placeholder="Name" value={form.firstName} onChange={set('firstName')} />
                 </div>
                 {errors.firstName && <p className="field-error">{errors.firstName}</p>}
               </div>
@@ -122,7 +122,7 @@ export default function Register() {
                 <label className="field-label">Last Name</label>
                 <div className={`field-wrap-modern ${errors.lastName ? 'error' : ''}`}>
                   <IconUser />
-                  <input type="text" placeholder="Delarosa" value={form.lastName} onChange={set('lastName')} />
+                  <input type="text" placeholder="Last Name" value={form.lastName} onChange={set('lastName')} />
                 </div>
                 {errors.lastName && <p className="field-error">{errors.lastName}</p>}
               </div>
@@ -132,7 +132,7 @@ export default function Register() {
               <label className="field-label">Email Address</label>
               <div className={`field-wrap-modern ${errors.email ? 'error' : ''}`}>
                 <IconMail />
-                <input type="email" placeholder="jrevdelarosa1@gmail.com" value={form.email} onChange={set('email')} />
+                <input type="email" placeholder="email@gmail.com" value={form.email} onChange={set('email')} />
               </div>
               {errors.email && <p className="field-error">{errors.email}</p>}
             </div>
@@ -161,7 +161,7 @@ export default function Register() {
             <div className="field-group">
               <label className="field-label">Home Address</label>
               <div className="field-wrap-modern">
-                <input type="text" placeholder="Iloilo Circumferential Rd 1" value={form.address} onChange={set('address')} />
+                <input type="text" placeholder="Address" value={form.address} onChange={set('address')} />
               </div>
               {errors.address && <p className="field-error">{errors.address}</p>}
             </div>
@@ -170,7 +170,7 @@ export default function Register() {
               <label className="field-label">Phone Number</label>
               <div className={`field-wrap-modern ${errors.phone ? 'error' : ''}`}>
                 <IconPhone />
-                <input type="tel" placeholder="+639915043354" value={form.phone} onChange={set('phone')} />
+                <input type="tel" placeholder="09123456789" value={form.phone} onChange={set('phone')} />
               </div>
               {errors.phone && <p className="field-error">{errors.phone}</p>}
             </div>
