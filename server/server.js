@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
+const cors = require('cors');
 if (process.env.NODE_ENV !== 'production') {
   require("dotenv").config();
 }
@@ -13,7 +13,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "https://doclock.vercel.app", // Your frontend URL
+  origin: ["https://doclock.vercel.app", "http://localhost:5173"], // Add your local dev URL too
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
