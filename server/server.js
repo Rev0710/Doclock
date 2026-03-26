@@ -13,7 +13,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ["https://doclock.vercel.app", "http://localhost:5173"], // Add your local dev URL too
+  origin: ["https://doclock.vercel.app", "http://localhost:3000"], // Add your local dev URL too
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
