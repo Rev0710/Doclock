@@ -20,15 +20,29 @@ export function AuthProvider({ children }) {
   }
 
   // Check for existing session on load
+  // Check for existing session on load
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const stored = localStorage.getItem('user')
-    if (token && stored) {
-      setToken(token)
-      setUser(JSON.parse(stored))
-    }
-    setLoading(false);
-  }, [])
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+
+      if (token && storedUser) {
+        try {
+          // 1. Set the header so the backend knows who we are
+          setToken(token);
+          
+          // 2. Verify token by fetching user data
+          setUser(JSON.parse(storedUser));
+        } catch (err) {
+          console.error("Session expired or invalid");
+          logout(); // Clean up if the token is fake or expired
+        }
+      }
+      setLoading(false);
+    };
+
+    initAuth();
+  }, []);
 
   const login = async (email, password) => {
     // FIX: Removed the extra /api from the path
