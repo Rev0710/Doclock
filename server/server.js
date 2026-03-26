@@ -13,7 +13,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ["https://doclock.vercel.app"], // Your frontend URL
+  origin: "https://doclock.vercel.app", // Your frontend URL
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
