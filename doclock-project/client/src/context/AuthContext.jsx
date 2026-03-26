@@ -3,12 +3,14 @@ import axios from 'axios'
 
 const AuthContext = createContext(null)
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+// Your Base URL already includes /api
+const API_URL = "https://doclock-v63v.vercel.app/api" 
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null)
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Helper to set headers
   const setToken = (token) => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
@@ -17,6 +19,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Check for existing session on load
   useEffect(() => {
     const token = localStorage.getItem('token')
     const stored = localStorage.getItem('user')
@@ -24,11 +27,12 @@ export function AuthProvider({ children }) {
       setToken(token)
       setUser(JSON.parse(stored))
     }
-    setLoading(false)
+    setLoading(false);
   }, [])
 
   const login = async (email, password) => {
-    const { data } = await axios.post(`${API_URL}/api/auth/login`, { email, password })
+    // FIX: Removed the extra /api from the path
+    const { data } = await axios.post(`${API_URL}/auth/login`, { email, password })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
     setToken(data.token)
@@ -37,7 +41,8 @@ export function AuthProvider({ children }) {
   }
 
   const register = async (payload) => {
-    const { data } = await axios.post(`${API_URL}/api/auth/register`, payload)
+    // FIX: Removed the extra /api from the path
+    const { data } = await axios.post(`${API_URL}/auth/register`, payload)
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
     setToken(data.token)
@@ -45,9 +50,9 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
-  // updateProfile — updates name, email, phone in MongoDB and syncs local state
   const updateProfile = async (payload) => {
-    const { data } = await axios.put(`${API_URL}/api/users/profile`, payload)
+  
+    const { data } = await axios.put(`${API_URL}/users/profile`, payload)
     localStorage.setItem('user', JSON.stringify(data.user))
     setUser(data.user)
     return data.user

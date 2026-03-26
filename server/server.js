@@ -1,9 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
-
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  require("dotenv").config();
+}
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -13,11 +13,9 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  // Add your actual Vercel frontend URL here explicitly to be safe
-  origin: ["https://doclock.vercel.app", "http://localhost:5173", "http://localhost:3000"].filter(Boolean),
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: ["https://doclock.vercel.app"], // Your frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

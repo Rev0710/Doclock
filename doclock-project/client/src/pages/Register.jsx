@@ -40,29 +40,44 @@ export default function Register() {
   }
 
   const handleSubmit = async (ev) => {
-    ev.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length) { setErrors(errs); return }
-    setLoading(true)
-    setErrors({})
+    ev.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    
+    setLoading(true);
+    setErrors({});
+
     try {
+      // 1. Log the data before sending to see exactly what the phone is sending
+      console.log("Attempting registration with:", form);
+
       await register({
         name: `${form.firstName} ${form.lastName}`,
-        email: form.email,
-        phone: form.phone,
+        email: form.email.toLowerCase().trim(), // Clean the email
+        phone: form.phone.replace(/\s/g, ''),  // Remove spaces for the DB
         password: form.password,
         role: form.role,
-        address: form.address,     // ADDED
-        gender: form.gender,       // ADDED
-        birthDate: form.birthDate, // ADDED
-      })
-      navigate('/dashboard', { replace: true })
+        address: form.address,
+        gender: form.gender,
+        birthDate: form.birthDate,
+      });
+
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setErrors({ api: err.response?.data?.message || 'Registration failed. Please try again.' })
+      // 2. BETTER ERROR CATCHING: 
+      // This will show exactly why the DB rejected it (e.g. "Phone already used")
+      const errorMessage = err.response?.data?.message 
+        || err.message 
+        || 'Registration failed. Please check your connection.';
+      
+      setErrors({ api: errorMessage });
+      
+      // 3. Log the full error to your browser console (F12) for debugging
+      console.error("Registration Backend Error:", err.response?.data);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const set = (field) => (e) => {
     setForm(f => ({ ...f, [field]: e.target.value }))
