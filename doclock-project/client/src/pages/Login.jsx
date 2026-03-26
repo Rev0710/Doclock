@@ -22,6 +22,23 @@ export default function Login() {
     return e
   }
 
+  // --- ADDED FUNCTIONALITY ---
+  const handleGoogleLogin = () => {
+    setLoading(true);
+    // In a real app, this redirects to your backend or Firebase
+    // For now, we simulate the start of the Google Auth flow
+    console.log("Initiating Google Login...");
+    
+    // Example: Redirecting to a Google Auth route on your server
+    // window.location.href = "http://localhost:5000/api/auth/google";
+    
+    // For visual demo, we'll just show an alert
+    setTimeout(() => {
+        alert("Google Login triggered! Connect your Client ID in the backend to finish.");
+        setLoading(false);
+    }, 1000);
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
@@ -45,7 +62,6 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      {/* Visual panel */}
       <div className="auth-visual">
         <div className="auth-visual-inner">
           <div className="auth-logo">Doc<span>Lock</span></div>
@@ -75,7 +91,6 @@ export default function Login() {
         <div className="auth-bg-blob auth-bg-blob--2" />
       </div>
 
-      {/* Form panel */}
       <div className="auth-form-panel">
         <div className="auth-form-box anim-fade-up">
           <div className="auth-form-header">
@@ -88,7 +103,6 @@ export default function Login() {
           )}
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
-            {/* Email */}
             <div className="field-group">
               <label className="field-label" htmlFor="email">Email Address</label>
               <div className={`field-wrap ${errors.email ? 'error' : ''}`}>
@@ -100,17 +114,15 @@ export default function Login() {
                   placeholder="john@example.com"
                   value={form.email}
                   onChange={set('email')}
-                  autoComplete="email"
                 />
               </div>
               {errors.email && <p className="field-error">{errors.email}</p>}
             </div>
 
-            {/* Password */}
             <div className="field-group">
               <div className="field-label-row">
                 <label className="field-label" htmlFor="password">Password</label>
-                <Link to="/forgot-password" className="field-forgot">Forgot password?</Link>
+                <Link to="/forgot-password" style={{fontSize: '13px', color: '#2563eb'}}>Forgot password?</Link>
               </div>
               <div className={`field-wrap ${errors.password ? 'error' : ''}`}>
                 <span className="field-icon"><IconLock /></span>
@@ -121,13 +133,11 @@ export default function Login() {
                   placeholder="••••••••"
                   value={form.password}
                   onChange={set('password')}
-                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   className="field-eye"
                   onClick={() => setShowPass(v => !v)}
-                  tabIndex={-1}
                 >
                   {showPass ? <IconEyeOff /> : <IconEye />}
                 </button>
@@ -135,21 +145,27 @@ export default function Login() {
               {errors.password && <p className="field-error">{errors.password}</p>}
             </div>
 
-            <button type="submit" className="auth-submit-btn" disabled={loading}>
-              {loading ? <span className="btn-spinner" /> : null}
-              {loading ? 'Signing in…' : 'Sign In'}
+            <button type="submit" className="auth-submit-btn-modern" style={{marginTop: '10px'}} disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+
+            <div className="auth-divider">
+              <span>or continue with</span>
+            </div>
+
+            <button 
+              type="button" 
+              className="google-btn" 
+              onClick={handleGoogleLogin}
+              disabled={loading}
+            >
+              <IconGoogle />
+              Continue with Google
             </button>
           </form>
 
-          <div className="auth-divider"><span /><p>or continue with</p><span /></div>
-
-          <button className="auth-social-btn" type="button">
-            <IconGoogle />
-            Continue with Google
-          </button>
-
-          <p className="auth-switch">
-            Don't have an account? <Link to="/register">Create one free</Link>
+          <p className="auth-switch" style={{marginTop: '25px'}}>
+            Don't have an account? <Link to="/register" style={{fontWeight: '600', color: '#2563eb'}}>Create one free</Link>
           </p>
         </div>
       </div>
@@ -157,33 +173,33 @@ export default function Login() {
   )
 }
 
-/* ── Icons ── */
+// Icons (Same as your code)
 const IconMail = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
     <polyline points="22,6 12,13 2,6"/>
   </svg>
 )
 const IconLock = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="3" y="11" width="18" height="11" rx="2"/>
     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
   </svg>
 )
 const IconEye = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
     <circle cx="12" cy="12" r="3"/>
   </svg>
 )
 const IconEyeOff = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
     <line x1="1" y1="1" x2="23" y2="23"/>
   </svg>
 )
 const IconGoogle = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18">
+  <svg width="20" height="20" viewBox="0 0 18 18" style={{marginRight: '10px'}}>
     <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
     <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
     <path d="M3.964 10.706c-.18-.54-.282-1.117-.282-1.706s.102-1.166.282-1.706V4.962H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.038l3.007-2.332z" fill="#FBBC05"/>

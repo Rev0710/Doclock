@@ -23,7 +23,7 @@ export default function Register() {
     const e = {}
     if (!form.firstName.trim()) e.firstName = 'First name is required'
     if (!form.lastName.trim()) e.lastName = 'Last name is required'
-    if (!form.email) e.email = 'Email is required'
+    if (!form.email) e.email = 'Email is required make sure to enter a valid email with "@"'
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Enter a valid email'
     if (!form.phone) e.phone = 'Phone number is required'
     if (!form.address.trim()) e.address = 'Address is required'
