@@ -198,7 +198,7 @@ export default function Register() {
             </div>
 
             <div className="field-group">
-              <label className="field-label">I am a</label>
+              <label className="field-label">Role Selection</label>
               <div className="field-wrap-modern">
                 <select value={form.role} onChange={set('role')}>
                   <option value="patient">Patient</option>
