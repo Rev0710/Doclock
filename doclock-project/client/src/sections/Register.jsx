@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { goLandingHome } from '../utils/goLandingHome.js';
 import heroImg from '../assets/hero_img.png';
 import plus from '../assets/cross-png.png';
 import stethoscope from '../assets/stethoscope-icon.png';
@@ -19,6 +20,7 @@ function provisionalNameFromEmail(emailStr) {
 
 export default function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -53,6 +55,13 @@ export default function Register() {
 
           <div className="login-right">
             <header className="login-header">
+              <a
+                href="/"
+                className="login-backHome"
+                onClick={(e) => goLandingHome(navigate, location.pathname, e)}
+              >
+                ← Back to home
+              </a>
               <h1 className="register-title">
                 Create Account <span aria-hidden="true">🚀</span>
               </h1>

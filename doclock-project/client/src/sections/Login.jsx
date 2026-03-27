@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { goLandingHome } from '../utils/goLandingHome.js';
 import heroImg from '../assets/hero_img.png';
 import plus from '../assets/cross-png.png';
 import stethoscope from '../assets/stethoscope-icon.png';
@@ -8,6 +9,7 @@ import { useAuth } from '../hooks/useAuth.js';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -35,6 +37,13 @@ export default function Login() {
 
           <div className="login-right">
             <header className="login-header">
+              <a
+                href="/"
+                className="login-backHome"
+                onClick={(e) => goLandingHome(navigate, location.pathname, e)}
+              >
+                ← Back to home
+              </a>
               <h1 className="login-title">Welcome to Doclock</h1>
               <p className="login-subtitle">Book your appointment effortlessly in seconds.</p>
             </header>

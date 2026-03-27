@@ -1,4 +1,5 @@
-import React, { useState } from 'react'; // Added useState import
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import logo from '../assets/doc2.png';
 import heroImg from '../assets/hero_img.png';
 import stethoscope from '../assets/stethoscope-icon.png';
@@ -7,8 +8,19 @@ import aboutImg from '../assets/aboutImg.png';
 import MarketingNavbar from '../components/MarketingNavbar.jsx';
 
 const Landing = () => {
-  // 1. Move State to the top
+  const location = useLocation();
   const [activeIndex, setActiveIndex] = useState(1);
+
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+    if (location.hash) return;
+    const id = window.setTimeout(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [location.pathname, location.key, location.hash]);
 
   const handleCardClick = (index) => {
     setActiveIndex(index);

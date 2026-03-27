@@ -71,6 +71,13 @@
         align-items: center;
         flex-shrink: 0;
     }
+
+    nav a.logo,
+    a.logo.logo-home-link {
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+    }
     
     .logo span {
         color: var(--blue);
@@ -2571,6 +2578,20 @@
 
     .login-header {
         margin-bottom: 18px;
+    }
+
+    .login-backHome {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #2563eb;
+        text-decoration: none;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    .login-backHome:hover {
+        text-decoration: underline;
     }
 
     .login-title {

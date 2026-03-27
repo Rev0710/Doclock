@@ -1,20 +1,21 @@
 /**
- * Go to the landing route and scroll to the top (hero). Clears any hash in the URL.
+ * Go to the landing route (/) and scroll to the hero. Clears hash.
+ * Uses a short delay after navigate() so the landing view has painted (login/register → home).
  */
 export function goLandingHome(navigate, pathname, e) {
   if (e?.preventDefault) e.preventDefault()
 
-  const leavingRoute = pathname !== '/'
-
-  const scrollTop = () => {
+  const clearHashAndScroll = (behavior = 'auto') => {
     window.history.replaceState(null, '', '/')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    window.scrollTo({ top: 0, left: 0, behavior })
   }
 
-  if (leavingRoute) {
+  if (pathname !== '/') {
     navigate('/')
-    setTimeout(scrollTop, 0)
+    window.setTimeout(() => clearHashAndScroll('auto'), 150)
   } else {
-    scrollTop()
+    clearHashAndScroll('smooth')
   }
 }
