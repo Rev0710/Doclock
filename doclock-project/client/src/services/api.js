@@ -1,8 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  // Updated to match your production URL from AuthContext
-  baseURL: 'https://doclock-v63v.vercel.app/api', 
+  baseURL: import.meta.env.VITE_API_URL || 'https://doclock-v63v.vercel.app/api',
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 })
@@ -23,10 +22,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // FIXED: Changed 'doclock_token' to 'token'
       localStorage.removeItem('token')
-      localStorage.removeItem('user') // Also clear user data for a clean slate
-      window.location.href = '/login'
+      localStorage.removeItem('user')
+      const path = window.location.pathname || ''
+      const publicPaths = ['/', '/login', '/register']
+      if (!publicPaths.includes(path)) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import './Login.css' // Ensure the CSS below is added to this file
 
 export default function Register() {

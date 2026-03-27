@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 
 export default function ProfileTab() {
   const { user, updateProfile, deleteProfile } = useAuth()

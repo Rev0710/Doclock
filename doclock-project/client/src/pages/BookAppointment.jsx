@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './BookAppointment.css'
-import { useAppointments } from '../context/AppointmentContext'
+import { useAppointments } from '../hooks/useAppointments.js'
 
 const DOCTORS = [
   { id: 1, name: 'Dr. Sarah Williams', spec: 'Cardiologist', rating: 4.9, exp: '12 yrs', patients: 1240, avatar: 'SW', avail: true, price: 850, bio: 'Board-certified cardiologist specializing in preventive cardiology and heart disease management.' },

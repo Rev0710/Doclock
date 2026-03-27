@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-import { AppointmentContext } from "../context/AppointmentContext";
+import { useAuth } from "../hooks/useAuth.js";
+import { AppointmentContext } from "../context/appointmentContext.js";
 import AppointmentCard from "../components/AppointmentCard.jsx";
 import ProfileTab from "../components/ProfileTab.jsx";
 import "./Dashboard.css";

@@ -1,4 +1,10 @@
-// Convenience re-export so both import paths work:
-//   import { useAuth } from '../context/AuthContext'
-//   import useAuth from '../hooks/useAuth'
-export { useAuth as default } from '../context/AuthContext.jsx'
+import { useContext } from 'react'
+import { AuthContext } from '../context/authContext.js'
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
+  return ctx
+}
+
+export default useAuth
