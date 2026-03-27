@@ -110,9 +110,6 @@ export default function Footer() {
                 <a href="/#landing-gallery">Gallery</a>
               </li>
               <li>
-                <a href="/#landing-about">Our Blogs</a>
-              </li>
-              <li>
                 <a href="/#landing-footer">Contact Us</a>
               </li>
             </ul>
