@@ -73,9 +73,9 @@ const Landing = () => {
           <img className="crossIcon" src={crossIcon} alt="" />
         <div className="hero-copy">
           <h1 className="hero-title">
-            <span className="hero-title-line hero-title-line--primary">
-              Care in a <em>click book without</em>  the wait.
-            </span>
+            <span className="hero-title-line">Care in a Click,</span>
+            <span className="hero-title-line hero-title-line--accent">Book Without</span>
+            <span className="hero-title-line">The wait.</span>
           </h1>
           <p>Providing compassionate, world-class healthcare tailored to every patient. Your health, our priority — every step of the way.</p>
           <Link to="/login" className="btn-consult">
