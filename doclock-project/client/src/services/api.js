@@ -1,27 +1,31 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://doclock-v63v.vercel.app/api',
+  // Updated to match your production URL from AuthContext
+  baseURL: 'https://doclock-v63v.vercel.app/api', 
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 })
 
-/* ── Request: attach JWT ── */
+/* ── Request Interceptor: attach JWT ── */
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('doclock_token')
+    // FIXED: Changed 'doclock_token' to 'token' to match your AuthContext
+    const token = localStorage.getItem('token') 
     if (token) config.headers.Authorization = `Bearer ${token}`
     return config
   },
   (error) => Promise.reject(error)
 )
 
-/* ── Response: handle 401 globally ── */
+/* ── Response Interceptor: handle 401 globally ── */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('doclock_token')
+      // FIXED: Changed 'doclock_token' to 'token'
+      localStorage.removeItem('token')
+      localStorage.removeItem('user') // Also clear user data for a clean slate
       window.location.href = '/login'
     }
     return Promise.reject(error)
@@ -34,34 +38,14 @@ export const authAPI = {
   register: (data)   => api.post('/auth/register', data),
   logout:   ()       => api.post('/auth/logout'),
   me:       ()       => api.get('/auth/me'),
-  verify:   (code)   => api.post('/auth/verify', { code }),
-  forgotPw: (email)  => api.post('/auth/forgot-password', { email }),
-  resetPw:  (data)   => api.post('/auth/reset-password', data),
-}
-
-/* Doctors */
-export const doctorsAPI = {
-  list:        (params) => api.get('/doctors', { params }),
-  getById:     (id)     => api.get(`/doctors/${id}`),
-  getSlots:    (id, date) => api.get(`/doctors/${id}/slots`, { params: { date } }),
 }
 
 /* Appointments */
 export const appointmentsAPI = {
-  list:    (params) => api.get('/appointments', { params }),
-  create:  (data)   => api.post('/appointments', data),
-  getById: (id)     => api.get(`/appointments/${id}`),
-  cancel:  (id)     => api.patch(`/appointments/${id}/cancel`),
-  update:  (id, d)  => api.patch(`/appointments/${id}`, d),
-}
-
-/* Admin */
-export const adminAPI = {
-  stats:      ()       => api.get('/admin/stats'),
-  users:      (p)      => api.get('/admin/users', { params: p }),
-  updateUser: (id, d)  => api.patch(`/admin/users/${id}`, d),
-  deleteUser: (id)     => api.delete(`/admin/users/${id}`),
-  allAppts:   (p)      => api.get('/admin/appointments', { params: p }),
+  list:     ()        => api.get('/auth/my-appointments'),
+  create:   (data)    => api.post('/auth/book-appointment', data),
+  update:   (id, data) => api.put(`/auth/update-appointment/${id}`, data),
+  delete:   (id)      => api.delete(`/auth/delete-appointment/${id}`),
 }
 
 export default api

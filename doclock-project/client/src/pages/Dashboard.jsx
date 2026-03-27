@@ -1,313 +1,461 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
-import AppointmentCard from '../components/AppointmentCard.jsx'
-import './Dashboard.css'
-import ProfileTab from '../components/ProfileTab.jsx'
+import React, { useState, useEffect, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+import { AppointmentContext } from "../context/AppointmentContext";
+import AppointmentCard from "../components/AppointmentCard.jsx";
+import ProfileTab from "../components/ProfileTab.jsx";
+import "./Dashboard.css";
 
-/* ── Mock data (replace with real API calls) ── */
-const MOCK_APPOINTMENTS = [
-  { id: 1, doctor: 'Dr. Sarah Williams', specialty: 'Cardiologist',   date: '2026-03-22', time: '10:00 AM', status: 'confirmed', avatar: 'SW', type: 'In-Person' },
-  { id: 2, doctor: 'Dr. James Tan',      specialty: 'Dermatologist',  date: '2026-03-25', time: '02:30 PM', status: 'pending',   avatar: 'JT', type: 'Video Call' },
-  { id: 3, doctor: 'Dr. Amara Osei',     specialty: 'Neurologist',    date: '2026-04-01', time: '09:00 AM', status: 'confirmed', avatar: 'AO', type: 'In-Person' },
-]
-
-const MOCK_DOCTORS = [
-  { id: 1, name: 'Dr. Sarah Williams', spec: 'Cardiologist',   rating: 4.9, avail: true,  avatar: 'SW' },
-  { id: 2, name: 'Dr. James Tan',      spec: 'Dermatologist',  rating: 4.8, avail: true,  avatar: 'JT' },
-  { id: 3, name: 'Dr. Lisa Chen',      spec: 'Pediatrician',   rating: 4.9, avail: false, avatar: 'LC' },
-]
-
-const MONTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const DAY_LBL = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAY_LBL = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 
 export default function Dashboard() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const [appointments, setAppointments] = useState(MOCK_APPOINTMENTS)
-  const [detailAppt,   setDetailAppt]   = useState(null)
-  const [calMonth,  setCalMonth]  = useState(new Date().getMonth())
-  const [calYear,   setCalYear]   = useState(new Date().getFullYear())
-  const [selDate,   setSelDate]   = useState(null)
-  const [sideNav,   setSideNav]   = useState('dashboard')
+  const {
+    appointments,
+    loading,
+    loadAppointments,
+    removeAppointment,
+    updateAppointment,
+  } = useContext(AppointmentContext);
 
-  const handleLogout = async () => { await logout(); navigate('/login') }
+  const [sideNav, setSideNav] = useState("dashboard");
+  const [detailAppt, setDetailAppt] = useState(null);
 
-  const handleCancel = (id) => {
-    setAppointments(prev =>
-      prev.map(a => a.id === id ? { ...a, status: 'cancelled' } : a)
+  const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const [calYear, setCalYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    if (user) loadAppointments();
+  }, [user, loadAppointments]);
+
+  const safeAppts = Array.isArray(appointments) ? appointments : [];
+
+  // upcoming = not cancelled
+  const upcoming = safeAppts.filter((a) => a?.status !== "cancelled");
+
+  // status counts
+  const confirmedCount = safeAppts.filter((a) => a?.status === "confirmed").length;
+  const pendingCount = safeAppts.filter((a) => a?.status === "pending").length;
+  const cancelledCount = safeAppts.filter((a) => a?.status === "cancelled").length;
+
+  // calendar marked days
+  const apptDays = safeAppts
+    .filter((a) => typeof a?.date === "string")
+    .filter((a) =>
+      a.date.startsWith(`${calYear}-${String(calMonth + 1).padStart(2, "0")}`)
     )
+    .map((a) => parseInt(a.date.split("-")[2], 10))
+    .filter((n) => !isNaN(n));
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      await updateAppointment(id, { status: newStatus });
+      setDetailAppt(null);
+    } catch (err) {
+      alert("Failed to update appointment.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this appointment permanently?")) return;
+    await removeAppointment(id);
+    setDetailAppt(null);
+  };
+
+  // Loading UI (prevents white screen)
+  if (loading && safeAppts.length === 0) {
+    return (
+      <div className="dash-loading">
+        <div className="spinner"></div>
+        <p>Loading your appointments...</p>
+      </div>
+    );
   }
-
-  /* ── Calendar Logic ── */
-  const apptDays = appointments
-    .filter(a => a.date.startsWith(`${calYear}-${String(calMonth + 1).padStart(2, '0')}`))
-    .map(a => parseInt(a.date.split('-')[2]))
-
-  const today = new Date()
-
-  const stats = [
-    { label: 'Total Appointments', value: appointments.length, icon: '📅', color: '#eff6ff', textColor: 'var(--blue-600)' },
-    { label: 'Confirmed', value: appointments.filter(a => a.status === 'confirmed').length, icon: '✅', color: '#f0fdf4', textColor: 'var(--green-600)' },
-    { label: 'Pending', value: appointments.filter(a => a.status === 'pending').length, icon: '🕐', color: '#fff7ed', textColor: '#ea580c' },
-    { label: 'Cancelled', value: appointments.filter(a => a.status === 'cancelled').length, icon: '❌', color: '#fef2f2', textColor: 'var(--red-600)' },
-  ]
-
-  const navItems = [
-    { key: 'dashboard',    icon: <IcoGrid />,    label: 'Dashboard' },
-    { key: 'appointments', icon: <IcoCalendar/>, label: 'Appointments' },
-    { key: 'doctors',      icon: <IcoUsers />,   label: 'Find Doctors' },
-    { key: 'profile',      icon: <IcoUser />,    label: 'My Profile' },
-  ]
 
   return (
     <div className="dash-layout">
-      {/* ── SIDEBAR ── */}
       <aside className="dash-sidebar">
-        <div className="sidebar-logo">Doc<span>Lock</span></div>
+        <div className="sidebar-logo">
+          Doc<span>Lock</span>
+        </div>
+
         <nav className="sidebar-nav">
-          <p className="sidebar-section-label">MAIN</p>
-          {navItems.map(n => (
-            <button
-              key={n.key}
-              className={`sidebar-nav-item ${sideNav === n.key ? 'active' : ''}`}
-              onClick={() => setSideNav(n.key)}
-            >
-              {n.icon} {n.label}
-            </button>
-          ))}
-          {user?.role === 'admin' && (
-            <>
-              <p className="sidebar-section-label" style={{ marginTop: 20 }}>ADMIN</p>
-              <Link to="/admin" className="sidebar-nav-item">
-                <IcoShield /> Admin Panel
-              </Link>
-            </>
-          )}
+          <button
+            className={`sidebar-nav-item ${sideNav === "dashboard" ? "active" : ""}`}
+            onClick={() => setSideNav("dashboard")}
+          >
+            <IcoGrid /> Dashboard
+          </button>
+
+          <button
+            className={`sidebar-nav-item ${sideNav === "appointments" ? "active" : ""}`}
+            onClick={() => setSideNav("appointments")}
+          >
+            <IcoCalendar /> Appointments
+          </button>
+
+          <button
+            className={`sidebar-nav-item ${sideNav === "profile" ? "active" : ""}`}
+            onClick={() => setSideNav("profile")}
+          >
+            <IcoUser /> My Profile
+          </button>
         </nav>
 
         <div className="sidebar-bottom">
           <div className="sidebar-user">
-            <div className="sidebar-avatar">{user?.name?.charAt(0) || 'U'}</div>
+            <div className="sidebar-avatar">
+              {user?.name?.charAt(0)?.toUpperCase() || "U"}
+            </div>
             <div className="sidebar-user-info">
-              <p className="su-name">{user?.name || 'Guest User'}</p>
-              <p className="su-role">{user?.role || 'Patient'}</p>
+              <p className="su-name">{user?.name || "User"}</p>
+              <p className="su-role">{user?.role || "Patient"}</p>
             </div>
           </div>
+
           <button className="sidebar-logout" onClick={handleLogout}>
             <IcoLogout /> Sign Out
           </button>
         </div>
       </aside>
 
-      {/* ── MAIN CONTENT ── */}
       <main className="dash-main">
         <header className="dash-topbar">
           <div>
             <h1 className="dash-page-title">
-              {sideNav === 'dashboard'    && `Good morning, ${user?.name?.split(' ')[0] || 'there'} 👋`}
-              {sideNav === 'appointments' && 'My Appointments'}
-              {sideNav === 'doctors'      && 'Find a Doctor'}
-              {sideNav === 'profile'      && 'My Profile'}
+              Good day, {user?.name?.split(" ")[0] || "User"} 👋
             </h1>
-            <p className="dash-page-sub">
-              {today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
+            <p className="dash-page-sub">{new Date().toDateString()}</p>
           </div>
+
           <div className="dash-topbar-right">
-            <button className="dash-icon-btn" title="Notifications"><IcoBell /></button>
-            <Link to="/book" className="dash-book-btn">+ Book Appointment</Link>
+            <Link to="/book" className="dash-book-btn">
+              + Book Appointment
+            </Link>
           </div>
         </header>
 
-        {/* ─────────── DASHBOARD TAB ─────────── */}
-        {sideNav === 'dashboard' && (
-          <div className="anim-fade-up">
+        {/* DASHBOARD VIEW */}
+        {sideNav === "dashboard" && (
+          <div className="dash-content anim-fade-up">
             <div className="stats-grid">
-              {stats.map((s, i) => (
-                <div key={s.label} className="stat-card anim-fade-up" style={{ animationDelay: `${i * 0.06}s` }}>
-                  <div className="stat-icon" style={{ background: s.color, fontSize: 22 }}>{s.icon}</div>
-                  <p className="stat-value" style={{ color: s.textColor }}>{s.value}</p>
-                  <p className="stat-label">{s.label}</p>
-                </div>
-              ))}
+              <StatCard label="Total Appointments" val={safeAppts.length} icon="📅" bg="#eff6ff" text="#2563eb" />
+              <StatCard label="Confirmed" val={confirmedCount} icon="✅" bg="#f0fdf4" text="#16a34a" />
+              <StatCard label="Pending" val={pendingCount} icon="⏳" bg="#fff7ed" text="#ea580c" />
+              <StatCard label="Cancelled" val={cancelledCount} icon="❌" bg="#fef2f2" text="#dc2626" />
             </div>
 
             <div className="dash-two-col">
-              <div>
+              <section>
                 <div className="section-bar">
                   <h2 className="section-bar-title">Upcoming Appointments</h2>
-                  <button className="section-bar-link" onClick={() => setSideNav('appointments')}>View all →</button>
+                  <button className="section-bar-link" onClick={() => setSideNav("appointments")}>
+                    View all →
+                  </button>
                 </div>
+
                 <div className="appt-list">
-                  {appointments.filter(a => a.status !== 'cancelled').slice(0, 3).map(a => (
-                    <AppointmentCard key={a.id} appointment={a} onCancel={handleCancel} onView={setDetailAppt} />
-                  ))}
-                  {appointments.length === 0 && (
-                    <div className="empty-state">
-                      <p>📅</p><p>No appointments yet.</p>
-                      <Link to="/book" className="dash-book-btn" style={{ marginTop: 12 }}>Book now</Link>
+                  {upcoming.length > 0 ? (
+                    upcoming.slice(0, 3).map((a) => (
+                      <AppointmentCard
+                        key={a._id || a.id}
+                        appointment={a}
+                        onView={() => setDetailAppt(a)}
+                        onCancel={() => handleUpdateStatus(a._id || a.id, "cancelled")}
+                      />
+                    ))
+                  ) : (
+                    <div className="professional-empty-state">
+                      <div className="empty-icon-container">
+                        <IcoCalendarLarge />
+                      </div>
+                      <h3>No Upcoming Appointments</h3>
+                      <p>
+                        Your schedule is clear. Book your next appointment now.
+                      </p>
+                      <Link to="/book" className="empty-state-btn">
+                        Book Now
+                      </Link>
                     </div>
                   )}
                 </div>
-              </div>
+              </section>
 
-              <div className="dash-right-col">
+              <aside className="dash-right-col">
                 <Calendar
-                  month={calMonth} year={calYear}
-                  apptDays={apptDays} selDate={selDate}
-                  onPrev={() => { if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1)}else setCalMonth(m=>m-1) }}
-                  onNext={() => { if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1)}else setCalMonth(m=>m+1) }}
-                  onSelect={setSelDate}
+                  month={calMonth}
+                  year={calYear}
+                  apptDays={apptDays}
+                  onPrev={() => {
+                    if (calMonth === 0) {
+                      setCalMonth(11);
+                      setCalYear((y) => y - 1);
+                    } else setCalMonth((m) => m - 1);
+                  }}
+                  onNext={() => {
+                    if (calMonth === 11) {
+                      setCalMonth(0);
+                      setCalYear((y) => y + 1);
+                    } else setCalMonth((m) => m + 1);
+                  }}
                 />
-                <div style={{ marginTop: 20 }}>
-                  <div className="section-bar">
-                    <h2 className="section-bar-title">Top Doctors</h2>
-                    <button className="section-bar-link" onClick={() => setSideNav('doctors')}>See all →</button>
-                  </div>
-                  <div className="quick-doctors">
-                    {MOCK_DOCTORS.map(d => (
-                      <Link to="/book" key={d.id} className="quick-doctor-row">
-                        <div className="qd-avatar">{d.avatar}</div>
-                        <div className="qd-info">
-                          <p className="qd-name">{d.name}</p>
-                          <p className="qd-spec">{d.spec} · ★{d.rating}</p>
+              </aside>
+            </div>
+          </div>
+        )}
+
+        {/* APPOINTMENTS VIEW */}
+        {sideNav === "appointments" && (
+          <div className="anim-fade-up">
+            <div className="section-bar">
+              <h2 className="section-bar-title">All Appointments</h2>
+            </div>
+
+            <div className="appt-list-full">
+              {safeAppts.length > 0 ? (
+                safeAppts.map((a) => {
+                  const name =
+                    a.doctorName || a.doctor || a.service || "Doctor";
+                  return (
+                    <div key={a._id || a.id} className="appt-row-card">
+                      <div className="row-info">
+                        <div className="row-avatar">
+                          {name.charAt(0).toUpperCase()}
                         </div>
-                        <div className={`qd-dot ${d.avail ? 'avail' : 'busy'}`} />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                        <div>
+                          <p className="row-name">{name}</p>
+                          <p className="row-sub">
+                            {a.date || "No date"} • {a.time || "No time"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="row-actions">
+                        <span className={`status-tag ${a.status || "pending"}`}>
+                          {a.status || "pending"}
+                        </span>
+
+                        <button className="btn-icon" onClick={() => setDetailAppt(a)}>
+                          View
+                        </button>
+
+                        <button
+                          className="btn-icon danger"
+                          onClick={() => handleDelete(a._id || a.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>
+                  No appointment records found.
+                </p>
+              )}
             </div>
           </div>
         )}
 
-        {/* ─────────── APPOINTMENTS TAB ─────────── */}
-        {sideNav === 'appointments' && (
-          <div className="anim-fade-up">
-            <div className="tab-filters">
-              {['All', 'Confirmed', 'Pending', 'Cancelled'].map(f => (
-                <button key={f} className="tab-chip active-first">{f}</button>
-              ))}
-            </div>
-            <div className="appt-list">
-              {appointments.map(a => (
-                <AppointmentCard key={a.id} appointment={a} onCancel={handleCancel} onView={setDetailAppt} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ─────────── DOCTORS TAB ─────────── */}
-        {sideNav === 'doctors' && (
-          <div className="anim-fade-up">
-            <p style={{ color: 'var(--slate-500)', marginBottom: 24 }}>
-              Browse and book from our network of verified specialists.
-            </p>
-            <Link to="/book" className="dash-book-btn" style={{ display: 'inline-flex' }}>
-              Open Doctor Finder →
-            </Link>
-          </div>
-        )}
-
-        {/* ─────────── PROFILE TAB ─────────── */}
-        {/* FIX: Removed the redundant hardcoded profile HTML and used ONLY the ProfileTab component */}
-        {sideNav === 'profile' && <ProfileTab />}
-
+        {/* PROFILE VIEW */}
+        {sideNav === "profile" && <ProfileTab />}
       </main>
 
-      {/* ── DETAIL MODAL ── */}
+      {/* DETAIL MODAL */}
       {detailAppt && (
         <div className="modal-overlay" onClick={() => setDetailAppt(null)}>
-          <div className="modal-box anim-scale-in" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setDetailAppt(null)}>×</button>
-            <h2 className="modal-title">Appointment Details</h2>
-            <div className="modal-doctor-info">
-              <div className="qd-avatar" style={{ width: 52, height: 52, fontSize: 20, borderRadius: 14 }}>{detailAppt.avatar}</div>
-              <div>
-                <p className="modal-doctor-name">{detailAppt.doctor}</p>
-                <p className="modal-doctor-spec">{detailAppt.specialty}</p>
-              </div>
-              <span className={`appt-status status-${detailAppt.status === 'confirmed' ? 'green' : detailAppt.status === 'pending' ? 'blue' : 'red'}`} style={{ marginLeft: 'auto' }}>
-                {detailAppt.status}
-              </span>
-            </div>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setDetailAppt(null)}>
+              ×
+            </button>
+
+            <h3 className="modal-title">Appointment Details</h3>
+
             <div className="modal-details">
-              {[['Date', detailAppt.date], ['Time', detailAppt.time], ['Type', detailAppt.type || 'In-Person']].map(([l, v]) => (
-                <div key={l} className="modal-detail-row">
-                  <span className="mdr-label">{l}</span>
-                  <span className="mdr-value">{v}</span>
-                </div>
-              ))}
+              <div className="modal-detail-row">
+                <span className="mdr-label">Doctor</span>
+                <span className="mdr-value">
+                  {detailAppt.doctorName || detailAppt.doctor || detailAppt.service}
+                </span>
+              </div>
+
+              <div className="modal-detail-row">
+                <span className="mdr-label">Date</span>
+                <span className="mdr-value">{detailAppt.date || "N/A"}</span>
+              </div>
+
+              <div className="modal-detail-row">
+                <span className="mdr-label">Time</span>
+                <span className="mdr-value">{detailAppt.time || "N/A"}</span>
+              </div>
+
+              <div className="modal-detail-row">
+                <span className="mdr-label">Reason</span>
+                <span className="mdr-value">{detailAppt.reason || "Not provided"}</span>
+              </div>
+
+              <div className="modal-detail-row">
+                <span className="mdr-label">Status</span>
+                <span className="mdr-value">{detailAppt.status || "pending"}</span>
+              </div>
             </div>
+
             <div className="modal-actions">
-              <button className="modal-btn-outline" onClick={() => setDetailAppt(null)}>Close</button>
-              {detailAppt.status !== 'cancelled' && (
-                <button className="modal-btn-danger" onClick={() => { handleCancel(detailAppt.id); setDetailAppt(null) }}>
-                  Cancel Appointment
+              {detailAppt.status === "pending" && (
+                <button
+                  className="modal-btn-outline"
+                  onClick={() => handleUpdateStatus(detailAppt._id || detailAppt.id, "confirmed")}
+                >
+                  Confirm
                 </button>
               )}
+
+              {detailAppt.status !== "cancelled" && (
+                <button
+                  className="modal-btn-outline"
+                  onClick={() => handleUpdateStatus(detailAppt._id || detailAppt.id, "cancelled")}
+                >
+                  Cancel
+                </button>
+              )}
+
+              <button
+                className="modal-btn-danger"
+                onClick={() => handleDelete(detailAppt._id || detailAppt.id)}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
-/* ── Calendar sub-component ── */
-function Calendar({ month, year, apptDays, selDate, onPrev, onNext, onSelect }) {
-  const firstDay    = new Date(year, month, 1).getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const today       = new Date()
+/* COMPONENTS */
+function StatCard({ label, val, icon, bg, text }) {
+  return (
+    <div className="stat-card">
+      <div className="stat-icon" style={{ background: bg }}>
+        {icon}
+      </div>
+      <div>
+        <p className="stat-value" style={{ color: text }}>
+          {val}
+        </p>
+        <p className="stat-label">{label}</p>
+      </div>
+    </div>
+  );
+}
 
-  const cells = []
-  for (let i = 0; i < firstDay; i++) cells.push(null)
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+function Calendar({ month, year, apptDays, onPrev, onNext }) {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
 
-  const dateStr = (d) => `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  const cells = [
+    ...Array(firstDay).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+
+  const today = new Date();
+  const isThisMonth = today.getMonth() === month && today.getFullYear() === year;
 
   return (
     <div className="mini-cal">
       <div className="cal-head">
-        <span className="cal-month-label">{MONTHS[month]} {year}</span>
-        <div style={{ display: 'flex', gap: 4 }}>
-          <button className="cal-nav-btn" onClick={onPrev}>‹</button>
-          <button className="cal-nav-btn" onClick={onNext}>›</button>
+        <span className="cal-month-label">
+          {MONTHS[month]} {year}
+        </span>
+
+        <div style={{ display: "flex", gap: "6px" }}>
+          <button className="cal-nav-btn" onClick={onPrev}>
+            ‹
+          </button>
+          <button className="cal-nav-btn" onClick={onNext}>
+            ›
+          </button>
         </div>
       </div>
+
       <div className="cal-day-labels">
-        {DAY_LBL.map(d => <span key={d}>{d}</span>)}
+        {DAY_LBL.map((d) => (
+          <span key={d}>{d}</span>
+        ))}
       </div>
+
       <div className="cal-cells">
         {cells.map((d, i) => {
-          if (!d) return <span key={i} />
-          const isToday  = d === today.getDate() && month === today.getMonth() && year === today.getFullYear()
-          const isSel    = selDate === dateStr(d)
-          const hasAppt  = apptDays.includes(d)
+          const isToday = isThisMonth && d === today.getDate();
+          const hasAppt = d && apptDays.includes(d);
+
           return (
             <button
               key={i}
-              className={`cal-cell ${isToday ? 'today' : ''} ${isSel ? 'selected' : ''} ${hasAppt && !isSel ? 'has-appt' : ''}`}
-              onClick={() => onSelect(dateStr(d))}
+              className={`cal-cell ${isToday ? "today" : ""} ${
+                hasAppt ? "has-appt" : ""
+              }`}
+              disabled={!d}
             >
               {d}
-              {hasAppt && !isSel && <span className="cal-dot" />}
+              {hasAppt && <span className="cal-dot"></span>}
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
 
-/* ── Icons ── */
-const IcoGrid     = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-const IcoCalendar= () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-const IcoUsers    = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-const IcoUser     = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-const IcoShield   = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-const IcoLogout   = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-const IcoBell     = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+/* ICONS */
+const IcoGrid = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="3" width="7" height="7" />
+    <rect x="14" y="3" width="7" height="7" />
+    <rect x="3" y="14" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" />
+  </svg>
+);
+
+const IcoCalendar = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
+const IcoUser = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const IcoLogout = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const IcoCalendarLarge = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5">
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
