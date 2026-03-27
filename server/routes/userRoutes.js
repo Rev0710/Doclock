@@ -4,6 +4,31 @@ const User = require("../models/user")
 
 const router = express.Router()
 
+const MAX_BP = 30
+const MAX_LABS = 40
+const MAX_MEDS = 40
+
+function mergeHealthProfile(hp) {
+  const base = {
+    heightCm: null,
+    weightKg: null,
+    weightRecordedAt: null,
+    bloodPressureReadings: [],
+    labResults: [],
+    medications: [],
+  }
+  if (!hp || typeof hp !== "object") return base
+  return {
+    ...base,
+    heightCm: hp.heightCm != null ? hp.heightCm : null,
+    weightKg: hp.weightKg != null ? hp.weightKg : null,
+    weightRecordedAt: hp.weightRecordedAt ?? null,
+    bloodPressureReadings: Array.isArray(hp.bloodPressureReadings) ? hp.bloodPressureReadings : [],
+    labResults: Array.isArray(hp.labResults) ? hp.labResults : [],
+    medications: Array.isArray(hp.medications) ? hp.medications : [],
+  }
+}
+
 // @desc  List doctors (for patient booking UI)
 // @route GET /api/users/doctors
 router.get("/doctors", protect, async (req, res) => {
@@ -35,6 +60,89 @@ router.get("/doctors", protect, async (req, res) => {
     res.status(500).json({ message: error.message || "Error fetching doctors" });
   }
 });
+
+// @desc  Patient health record (vitals, labs, medications)
+// @route GET /api/users/health-record
+router.get("/health-record", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("healthProfile").lean()
+    if (!user) return res.status(404).json({ message: "User not found" })
+    const healthProfile = mergeHealthProfile(user.healthProfile)
+    res.json({ success: true, healthProfile })
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Error loading health record" })
+  }
+})
+
+// @desc  Update health record (replace sections when provided)
+// @route PUT /api/users/health-record
+router.put("/health-record", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+    if (!user) return res.status(404).json({ message: "User not found" })
+
+    const {
+      heightCm,
+      weightKg,
+      weightRecordedAt,
+      bloodPressureReadings,
+      labResults,
+      medications,
+    } = req.body
+
+    if (!user.healthProfile) user.healthProfile = {}
+
+    if (heightCm !== undefined) {
+      if (heightCm === null || heightCm === "") user.healthProfile.heightCm = null
+      else {
+        const n = Number(heightCm)
+        user.healthProfile.heightCm = Number.isFinite(n) ? n : null
+      }
+    }
+
+    if (weightKg !== undefined) {
+      if (weightKg === null || weightKg === "") {
+        user.healthProfile.weightKg = null
+        user.healthProfile.weightRecordedAt = undefined
+      } else {
+        const n = Number(weightKg)
+        user.healthProfile.weightKg = Number.isFinite(n) ? n : null
+        if (user.healthProfile.weightKg != null) {
+          user.healthProfile.weightRecordedAt = weightRecordedAt
+            ? new Date(weightRecordedAt)
+            : new Date()
+        }
+      }
+    }
+
+    if (bloodPressureReadings !== undefined) {
+      if (!Array.isArray(bloodPressureReadings)) {
+        return res.status(400).json({ message: "bloodPressureReadings must be an array" })
+      }
+      user.healthProfile.bloodPressureReadings = bloodPressureReadings.slice(0, MAX_BP)
+    }
+
+    if (labResults !== undefined) {
+      if (!Array.isArray(labResults)) {
+        return res.status(400).json({ message: "labResults must be an array" })
+      }
+      user.healthProfile.labResults = labResults.slice(0, MAX_LABS)
+    }
+
+    if (medications !== undefined) {
+      if (!Array.isArray(medications)) {
+        return res.status(400).json({ message: "medications must be an array" })
+      }
+      user.healthProfile.medications = medications.slice(0, MAX_MEDS)
+    }
+
+    await user.save()
+    const fresh = await User.findById(req.user.id).select("healthProfile").lean()
+    res.json({ success: true, healthProfile: mergeHealthProfile(fresh.healthProfile) })
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Error saving health record" })
+  }
+})
 
 // @desc  Get logged-in user profile
 // @route GET /api/users/profile

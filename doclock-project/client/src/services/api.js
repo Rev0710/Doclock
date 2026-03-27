@@ -55,6 +55,8 @@ export const authAPI = {
 /* Users */
 export const usersAPI = {
   getDoctors: () => api.get('/users/doctors'),
+  getHealthRecord: () => api.get('/users/health-record'),
+  updateHealthRecord: (body) => api.put('/users/health-record', body),
 }
 
 /* Appointments */

@@ -14,6 +14,7 @@ import SerApntmt from './sections/serApntmt.jsx';
 import Available from './sections/Available.jsx';
 import Booked from './sections/Booked.jsx';
 import Appointments from './sections/Appointments.jsx';
+import HealthRecord from './sections/HealthRecord.jsx';
 import Admin from './sections/admin.jsx';
 
 import './index.css';
@@ -33,6 +34,7 @@ export default function App() {
             <Route element={<ProtectedRoute allowedRoles={signedInRoles} />}>
               <Route path="/upload-photo" element={<UploadPhoto />} />
               <Route path="/home" element={<Home />} />
+              <Route path="/health-record" element={<HealthRecord />} />
               <Route path="/set-appointment" element={<SerApntmt />} />
               <Route path="/available" element={<Available />} />
               <Route path="/booked" element={<Booked />} />

@@ -8,9 +8,9 @@ const NavIcon = ({ children }) => (
 );
 
 /**
- * @param {'overview' | 'health' | 'appointments' | 'available'} active
+ * @param {'overview' | 'health' | 'appointments' | 'available' | undefined} active
  */
-export default function DashboardNav({ active = 'overview' }) {
+export default function DashboardNav({ active }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
