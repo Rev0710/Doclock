@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/doc2.png';
 import heroImg from '../assets/hero_img.png';
 import stethoscope from '../assets/stethoscope-icon.png';
@@ -73,10 +73,12 @@ const Landing = () => {
           <img className="crossIcon" src={crossIcon} alt="" />
         <div className="hero-copy">
           <h1 className="hero-title">
-            Fast to <em>book</em>, no more waiting.
+          Care in a click <em>book without</em>, the wait.
           </h1>
           <p>Providing compassionate, world-class healthcare tailored to every patient. Your health, our priority — every step of the way.</p>
-          <button className="btn-consult">Book a Consultation</button>
+          <Link to="/login" className="btn-consult">
+            Book a Consultation
+          </Link>
         </div>
         <img className="stethoscope" src={stethoscope} alt="" />
       </section>
@@ -175,8 +177,12 @@ const Landing = () => {
       <section className="cta" id="landing-contact">
         <h2>Ready to take the next step in your health journey?</h2>
         <div className="cta-btns">
-          <button className="btn-outline">Learn More</button>
-          <button className="btn-consult">Book a Consultation</button>
+          <button type="button" className="btn-outline">
+            Learn More
+          </button>
+          <Link to="/login" className="btn-consult">
+            Book a Consultation
+          </Link>
         </div>
       </section>
     </div>

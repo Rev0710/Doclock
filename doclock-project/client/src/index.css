@@ -251,6 +251,12 @@
         align-items: center;
         gap: 8px;
     }
+
+    a.btn-consult {
+        text-decoration: none;
+        color: #fff;
+        box-sizing: border-box;
+    }
     
     .btn-consult:hover {
         background: #1d4ed8;
