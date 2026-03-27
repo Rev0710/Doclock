@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import logo from '../assets/doc2.png'
+import logo from '../assets/whitelogo.png'
 import './Footer.css'
 
 function IconMail() {
