@@ -1,7 +1,8 @@
-/* Doclock marketing footer — bright blue, four columns */
+/* Doclock marketing footer — white logo on solid blue */
 
 footer.doclock-site-footer {
-  background: #2563eb;
+  --doclock-footer-bg: #2563eb;
+  background: var(--doclock-footer-bg);
   color: #fff;
   margin-top: 0;
   padding: 0;
@@ -38,12 +39,18 @@ footer.doclock-site-footer {
 .doclock-site-footer-logo-link {
   display: inline-block;
   line-height: 0;
+  border-radius: 8px;
 }
 
 .doclock-site-footer-logo-img {
-  height: 52px;
+  height: 56px;
   width: auto;
+  max-width: min(260px, 100%);
   object-fit: contain;
+  object-position: left center;
+  display: block;
+  /* White artwork stays crisp on #2563eb */
+  filter: drop-shadow(0 2px 6px rgba(15, 23, 42, 0.12));
 }
 
 .doclock-site-footer-about {
