@@ -74,13 +74,7 @@ const Landing = () => {
         <div className="hero-copy">
           <h1 className="hero-title">
             <span className="hero-title-line hero-title-line--primary">
-              Care in a <em>click</em>
-            </span>
-            <span className="hero-title-line hero-title-line--secondary">
-              <span className="hero-title-emdash" aria-hidden="true">
-                —
-              </span>{' '}
-              <em>book</em> without the wait.
+              Care in a <em>click book without</em>  the wait.
             </span>
           </h1>
           <p>Providing compassionate, world-class healthcare tailored to every patient. Your health, our priority — every step of the way.</p>
