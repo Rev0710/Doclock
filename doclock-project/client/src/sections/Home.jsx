@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi, getAuthUser, getProfileImageSrc, setAuthUser } from '../lib/api';
+import { authApi, getAppointmentDoctorImageSrc, getAuthUser, getProfileImageSrc, setAuthUser } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
 import { useAppointments } from '../hooks/useAppointments.js';
 import { usersAPI } from '../services/api.js';
@@ -197,7 +197,11 @@ export default function Home() {
                       <article key={id} className="home-visitCard">
                         <div className="home-visitLeft">
                           <div className="home-doc">
-                            <div className={idx % 2 ? 'home-docAvatar alt' : 'home-docAvatar'} aria-hidden="true" />
+                            <img
+                              className={idx % 2 ? 'home-docAvatar alt' : 'home-docAvatar'}
+                              src={getAppointmentDoctorImageSrc(appt)}
+                              alt=""
+                            />
                             <div>
                               <div className="home-docName">{doctor}</div>
                               <div className="home-docRole">{specialty}</div>

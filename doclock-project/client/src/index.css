@@ -1472,7 +1472,9 @@
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, #ffd26f 0, #ff8a4c 55%, #2563eb 100%);
+        object-fit: cover;
+        background: #e5e7eb;
+        display: block;
     }
 
     .appts-wideName {
@@ -3384,11 +3386,13 @@
         width: 34px;
         height: 34px;
         border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, #9ae6ff 0, #60a5fa 55%, #1d4ed8 100%);
+        object-fit: cover;
+        flex-shrink: 0;
+        background: #e5e7eb;
     }
 
     .home-docAvatar.alt {
-        background: radial-gradient(circle at 30% 30%, #a7f3d0 0, #34d399 55%, #059669 100%);
+        box-shadow: 0 0 0 2px #34d399;
     }
 
     .home-docName {

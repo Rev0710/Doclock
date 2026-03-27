@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuthUser, getProfileImageSrc } from '../lib/api';
+import { getAppointmentDoctorImageSrc, getAuthUser, getProfileImageSrc } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
 import { useAppointments } from '../hooks/useAppointments.js';
 import { formatVisitDate, specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
@@ -50,6 +50,7 @@ export default function Appointments() {
         specialty,
         date: formatVisitDate(appt.date),
         time: appt.time || '—',
+        avatarSrc: getAppointmentDoctorImageSrc(appt),
       };
     });
   }, [appointments]);
@@ -90,7 +91,7 @@ export default function Appointments() {
   const wideCardBase = (v, actions) => (
     <article key={v.id} className="appts-wideCard" aria-label={`${v.status} appointment`}>
       <div className="appts-wideTop">
-        {profileImg ? <img className="appts-wideAvatar" src={profileImg} alt="" /> : <div className="appts-wideAvatar" aria-hidden="true" />}
+        <img className="appts-wideAvatar" src={v.avatarSrc} alt="" />
         <div className="appts-wideInfo">
           <div className="appts-wideName">{v.name}</div>
           <div className="appts-wideSpec">{v.specialty}</div>

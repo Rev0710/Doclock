@@ -101,6 +101,7 @@ const bookAppointment = async (req, res) => {
 const getMyAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find({ user: userObjectId(req) })
+      .populate("doctor", "name specialty avatar")
       .sort({ date: 1, createdAt: 1 })
       .lean();
     res.status(200).json({ success: true, appointments });

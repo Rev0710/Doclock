@@ -253,6 +253,7 @@ router.get("/", protect, async (req, res) => {
     const appointments = await Appointment.find({
       user: new mongoose.Types.ObjectId(String(req.user.id)),
     })
+      .populate("doctor", "name specialty avatar")
       .sort({ date: 1, createdAt: 1 })
       .lean();
     res.json({ success: true, appointments });

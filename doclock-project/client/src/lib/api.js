@@ -1,4 +1,5 @@
 import api from '../services/api.js';
+import { specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
 
 const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
@@ -10,6 +11,26 @@ export function getProfileImageSrc(user) {
   const a = user.avatar;
   if (typeof a === 'string' && a.trim().length > 0) return a.trim();
   const seed = encodeURIComponent(String(user.email || user.name || user._id || user.id || 'user'));
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundType=gradientLinear`;
+}
+
+/**
+ * Avatar for the provider on appointment rows — not the signed-in patient's photo.
+ * Uses linked doctor account `avatar` when present; otherwise a stable initials-style image from doctor id or name.
+ */
+export function getAppointmentDoctorImageSrc(appt) {
+  if (!appt || typeof appt !== 'object') {
+    return `https://api.dicebear.com/7.x/initials/svg?seed=appointment&backgroundType=gradientLinear`;
+  }
+  const d = appt.doctor;
+  if (d && typeof d === 'object') {
+    const a = d.avatar;
+    if (typeof a === 'string' && a.trim().length > 0) return a.trim();
+    const seed = encodeURIComponent(String(d._id || d.id || d.name || 'doctor'));
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundType=gradientLinear`;
+  }
+  const { doctor } = specialtyAndDoctorFromService(appt.service);
+  const seed = encodeURIComponent(String(doctor || appt._id || appt.id || 'appointment'));
   return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundType=gradientLinear`;
 }
 
