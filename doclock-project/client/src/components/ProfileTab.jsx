@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth.js'
+import { getProfileImageSrc } from '../lib/api.js'
 
 export default function ProfileTab() {
   const { user, updateProfile, deleteProfile } = useAuth()
@@ -54,7 +55,7 @@ export default function ProfileTab() {
   }
 
   const handleDelete = async () => {
-    if (window.confirm("CRITICAL: Are you sure? This will permanently delete your account.")) {
+    if (window.confirm('CRITICAL: Are you sure? This will permanently delete your account.')) {
       try {
         await deleteProfile()
       } catch (err) {
@@ -67,7 +68,12 @@ export default function ProfileTab() {
   return (
     <div className="anim-fade-up profile-section">
       <div className="profile-card">
-        <div className="profile-avatar-lg">{user?.name?.charAt(0) || 'U'}</div>
+        <img
+          className="profile-avatar-lg"
+          src={getProfileImageSrc(user)}
+          alt=""
+          style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover' }}
+        />
         <div>
           <h2 className="profile-name">{user?.name || 'Guest'}</h2>
           <p className="profile-email">{user?.email}</p>
@@ -122,13 +128,26 @@ export default function ProfileTab() {
         </button>
       </form>
 
-      <div className="danger-zone" style={{marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px'}}>
-        <h3 style={{color: 'red'}}>Danger Zone</h3>
-        <p style={{fontSize: '0.8rem', color: '#666'}}>Once you delete your account, there is no going back.</p>
-        <button type="button" onClick={handleDelete} className="delete-acc-btn" style={{color: 'red', background: 'none', border: '1px solid red', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer'}}>
+      <div className="danger-zone" style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+        <h3 style={{ color: 'red' }}>Danger Zone</h3>
+        <p style={{ fontSize: '0.8rem', color: '#666' }}>Once you delete your account, there is no going back.</p>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="delete-acc-btn"
+          style={{
+            color: 'red',
+            background: 'none',
+            border: '1px solid red',
+            padding: '5px 10px',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
+        >
           Delete My Account
         </button>
       </div>
+
     </div>
   )
 }

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import docLogo from '../assets/doc2.png';
-import { adminApi, getAuthUser, getAvatarDataUrl } from '../lib/api';
+import { adminApi, getAuthUser, getProfileImageSrc } from '../lib/api';
+import { useAuth } from '../hooks/useAuth.js';
 import ProfileTab from '../components/ProfileTab.jsx';
 
 const NavIcon = ({ children }) => (
@@ -35,83 +36,13 @@ function mergeScheduleWithDefaults(saved) {
   });
 }
 
-/** Sample data for My Patients → Today Appointments (matches product mockup). */
-const TODAY_APPOINTMENTS = [
-  {
-    id: '1',
-    initials: 'JS',
-    name: 'Jhon Smith',
-    type: 'Clinic Consulting',
-    avatarBg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-    right: { kind: 'status', label: 'Ongoing' },
-  },
-  {
-    id: '2',
-    initials: 'FM',
-    name: 'Frank Murray',
-    type: 'Clinic Consulting',
-    avatarBg: 'linear-gradient(135deg, #14b8a6, #0d9488)',
-    right: { kind: 'time', value: '10:25' },
-  },
-  {
-    id: '3',
-    initials: 'EL',
-    name: 'Ella Lucia',
-    type: 'Clinic Consulting',
-    avatarBg: 'linear-gradient(135deg, #f472b6, #db2777)',
-    right: { kind: 'time', value: '11:30' },
-  },
-  {
-    id: '4',
-    initials: 'AD',
-    name: 'Alyssa Dehn',
-    type: 'Clinic Consulting',
-    avatarBg: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
-    right: { kind: 'time', value: '12:20' },
-  },
-];
-
-const APPOINTMENT_REQUESTS_INITIAL = [
-  {
-    id: '1',
-    initials: 'BK',
-    name: 'Bogdan Krivenchenko',
-    detail: '45 Male, 12 April 9:30',
-    avatarBg: 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
-    status: 'declined',
-  },
-  {
-    id: '2',
-    initials: 'JW',
-    name: 'Jenny Wilson',
-    detail: 'Female, 25 April 10:30 AM',
-    avatarBg: 'linear-gradient(135deg,#f472b6,#ec4899)',
-    status: 'confirmed',
-  },
-  {
-    id: '3',
-    initials: 'DR',
-    name: 'Dianne Russel',
-    detail: 'Male, 45 Today 14:30 PM',
-    avatarBg: 'linear-gradient(135deg,#34d399,#10b981)',
-    status: 'confirmed',
-  },
-  {
-    id: '4',
-    initials: 'AB',
-    name: 'Annette Black',
-    detail: 'Male, 45 Today 14:30 PM',
-    avatarBg: 'linear-gradient(135deg,#fbbf24,#f59e0b)',
-    status: 'declined',
-  },
-  {
-    id: '5',
-    initials: 'AJ',
-    name: 'Angelina Jully',
-    detail: 'Male, 45 Today 14:30 PM',
-    avatarBg: 'linear-gradient(135deg,#a78bfa,#7c3aed)',
-    status: 'confirmed',
-  },
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+  'linear-gradient(135deg,#f472b6,#ec4899)',
+  'linear-gradient(135deg,#34d399,#10b981)',
+  'linear-gradient(135deg,#fbbf24,#f59e0b)',
+  'linear-gradient(135deg,#a78bfa,#7c3aed)',
+  'linear-gradient(135deg,#14b8a6,#0d9488)',
 ];
 
 /** Payments the doctor has received (mock data). */
@@ -646,7 +577,59 @@ const css = `
 .admin-root ::-webkit-scrollbar { width: 4px; }
 .admin-root ::-webkit-scrollbar-track { background: transparent; }
 .admin-root ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+@media (max-width: 768px) {
+  .admin-root .overview-content { padding: 14px !important; gap: 14px !important; }
+  .admin-root .stat-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .admin-root .three-col { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .admin-root .recent-table { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .admin-root .table-head,
+  .admin-root .table-row { min-width: 560px; }
+  .admin-root .settings-layout { flex-direction: column !important; }
+  .admin-root .profile-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    padding: 16px 12px !important;
+  }
+  .admin-root .profile-main { padding: 14px 12px !important; }
+  .admin-root .profile-tabs { flex-wrap: wrap !important; overflow-x: auto !important; gap: 4px !important; }
+  .admin-root .tab-item { padding: 8px 10px !important; font-size: 12px !important; }
+  .admin-root .msg-layout { flex-direction: column !important; overflow: visible !important; }
+  .admin-root .msg-list-panel {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+    max-height: 200px;
+    flex-shrink: 0;
+  }
+  .admin-root .msg-chat-panel { min-height: 280px; }
+  .admin-root .schedule-page,
+  .admin-root .pay-page,
+  .admin-root .patients-page { padding: 16px 12px !important; }
+}
 `;
+
+function formatStatCount(n) {
+  const x = Number(n) || 0;
+  if (x >= 1_000_000) return `${(x / 1_000_000).toFixed(1)}M`;
+  if (x >= 10_000) return `${(x / 1_000).toFixed(1)}k`;
+  return String(x);
+}
+
+const defaultAdminStats = {
+  totalAppointments: 0,
+  uniquePatients: 0,
+  pendingCount: 0,
+  cancelledCount: 0,
+  todayCount: 0,
+  newPatients: 0,
+  returningPatients: 0,
+  gender: { male: 0, female: 0, other: 0 },
+};
 
 function AvatarImg({ src, initials, className = 'avatar', style }) {
   const [failed, setFailed] = useState(false);
@@ -663,15 +646,17 @@ function AvatarImg({ src, initials, className = 'avatar', style }) {
 
 export default function Admin() {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const [page, setPage] = useState('settings');
   const [navKey, setNavKey] = useState('settings');
   const [profileTab, setProfileTab] = useState('reviews');
   const [chatId, setChatId] = useState('jone');
-  const [avatar, setAvatar] = useState(() => getAvatarDataUrl() || '');
   const [scheduleDays, setScheduleDays] = useState(() => defaultScheduleWeek());
   const [scheduleSavedMsg, setScheduleSavedMsg] = useState(false);
-  const [appointmentRequests, setAppointmentRequests] = useState(() => APPOINTMENT_REQUESTS_INITIAL);
-  const [todayAppointments, setTodayAppointments] = useState(() => TODAY_APPOINTMENTS);
+  const [appointmentRequests, setAppointmentRequests] = useState([]);
+  const [todayAppointments, setTodayAppointments] = useState([]);
+  const [adminStats, setAdminStats] = useState(() => ({ ...defaultAdminStats }));
+  const [recentPatients, setRecentPatients] = useState([]);
   const [paymentsReceived, setPaymentsReceived] = useState(() => PAYMENTS_RECEIVED);
   const [paymentsTotal, setPaymentsTotal] = useState(() => PAYMENTS_RECEIVED_TOTAL);
 
@@ -679,29 +664,64 @@ export default function Admin() {
     document.title = 'Doclock | Admin';
   }, []);
 
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'doclock_avatar') setAvatar(getAvatarDataUrl() || '');
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+  const refreshAppointmentPanels = useCallback(async () => {
+    const [requestsRes, todayRes, statsRes, recentRes] = await Promise.allSettled([
+      adminApi.getAppointmentRequests(),
+      adminApi.getTodayAppointments(),
+      adminApi.getAdminStats(),
+      adminApi.getRecentPatients(12),
+    ]);
+
+    if (requestsRes.status === 'fulfilled' && Array.isArray(requestsRes.value?.requests)) {
+      setAppointmentRequests(
+        requestsRes.value.requests.map((r, idx) => ({
+          ...r,
+          avatarBg: r.avatarBg || AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length],
+        })),
+      );
+    } else {
+      setAppointmentRequests([]);
+    }
+
+    if (todayRes.status === 'fulfilled' && Array.isArray(todayRes.value?.appointments)) {
+      setTodayAppointments(
+        todayRes.value.appointments.map((r, idx) => ({
+          ...r,
+          avatarBg: r.avatarBg || AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length],
+        })),
+      );
+    } else {
+      setTodayAppointments([]);
+    }
+
+    if (statsRes.status === 'fulfilled' && statsRes.value?.stats) {
+      const s = statsRes.value.stats;
+      setAdminStats({
+        ...defaultAdminStats,
+        ...s,
+        gender: { ...defaultAdminStats.gender, ...(s.gender || {}) },
+      });
+    } else {
+      setAdminStats({ ...defaultAdminStats });
+    }
+
+    if (recentRes.status === 'fulfilled' && Array.isArray(recentRes.value?.patients)) {
+      setRecentPatients(
+        recentRes.value.patients.map((r, idx) => ({
+          ...r,
+          avatarBg: r.avatarBg || AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length],
+        })),
+      );
+    } else {
+      setRecentPatients([]);
+    }
   }, []);
 
   useEffect(() => {
-    const gradients = [
-      'linear-gradient(135deg,#8b5cf6,#7c3aed)',
-      'linear-gradient(135deg,#f472b6,#ec4899)',
-      'linear-gradient(135deg,#34d399,#10b981)',
-      'linear-gradient(135deg,#fbbf24,#f59e0b)',
-      'linear-gradient(135deg,#a78bfa,#7c3aed)',
-      'linear-gradient(135deg,#14b8a6,#0d9488)',
-    ];
     let alive = true;
     (async () => {
-      const [availabilityRes, requestsRes, todayRes, paymentsRes] = await Promise.allSettled([
+      const [availabilityRes, paymentsRes] = await Promise.allSettled([
         adminApi.getAvailability(),
-        adminApi.getAppointmentRequests(),
-        adminApi.getTodayAppointments(),
         adminApi.getPaymentsReceived(),
       ]);
 
@@ -711,35 +731,29 @@ export default function Admin() {
         setScheduleDays(mergeScheduleWithDefaults(availabilityRes.value.availability));
       }
 
-      if (requestsRes.status === 'fulfilled' && Array.isArray(requestsRes.value?.requests)) {
-        setAppointmentRequests(
-          requestsRes.value.requests.map((r, idx) => ({
-            ...r,
-            avatarBg: r.avatarBg || gradients[idx % gradients.length],
-          })),
-        );
-      }
-
-      if (todayRes.status === 'fulfilled' && Array.isArray(todayRes.value?.appointments)) {
-        setTodayAppointments(
-          todayRes.value.appointments.map((r, idx) => ({
-            ...r,
-            avatarBg: r.avatarBg || gradients[idx % gradients.length],
-          })),
-        );
-      }
-
       if (paymentsRes.status === 'fulfilled') {
         const rows = Array.isArray(paymentsRes.value?.payments) ? paymentsRes.value.payments : [];
         const total = Number(paymentsRes.value?.total || 0);
         setPaymentsReceived(rows);
         setPaymentsTotal(total);
       }
+
+      await refreshAppointmentPanels();
     })();
     return () => {
       alive = false;
     };
-  }, []);
+  }, [refreshAppointmentPanels]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        refreshAppointmentPanels();
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [refreshAppointmentPanels]);
 
   const goNav = (key, targetPage) => {
     setNavKey(key);
@@ -761,17 +775,34 @@ export default function Admin() {
   };
 
   const setApptRequestStatus = async (id, status) => {
-    const prev = appointmentRequests;
-    const next = prev.map((a) => (a.id === id ? { ...a, status } : a));
-    setAppointmentRequests(next);
     try {
       await adminApi.updateAppointmentStatus(id, status);
+      await refreshAppointmentPanels();
     } catch {
-      setAppointmentRequests(prev);
+      /* keep list; optional toast */
     }
   };
 
-  const user = getAuthUser();
+  const sessionUser = getAuthUser() || authUser;
+  const profileImg = getProfileImageSrc(sessionUser);
+  const displayName = sessionUser?.name || 'Doctor';
+  const displaySpec = sessionUser?.specialty || 'Physician';
+  const genderTotal =
+    adminStats.gender.male + adminStats.gender.female + adminStats.gender.other;
+  const genderPct = (x) => (genderTotal === 0 ? 0 : Math.round((x / genderTotal) * 100));
+  const recentStatusStyle = (label) => {
+    if (label === 'Cancelled') return { background: '#fee2e2', color: '#dc2626' };
+    if (label === 'Pending') return { background: '#fef9c3', color: '#ca8a04' };
+    return { background: '#f0fdf4', color: '#16a34a' };
+  };
+  const userInitials =
+    String(sessionUser?.name || 'Dr')
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'DR';
 
   return (
     <>
@@ -915,8 +946,8 @@ export default function Admin() {
                   <path d="M13.7 21a2 2 0 01-3.4 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
-              {avatar ? (
-                <img className="home-avatar home-avatarHeader" src={avatar} alt={user?.name ? `${user.name} profile` : 'Profile'} />
+              {profileImg ? (
+                <img className="home-avatar home-avatarHeader" src={profileImg} alt="" />
               ) : (
                 <div className="home-avatar home-avatarHeader" aria-hidden="true" />
               )}
@@ -928,7 +959,7 @@ export default function Admin() {
               <div className="overview-content">
                 <div className="welcome-row">
                   <div>
-                    <h1>Welcome, Dr. Stephen</h1>
+                    <h1>Welcome, {displayName}</h1>
                     <p>Have a nice day at great work</p>
                   </div>
                 </div>
@@ -944,7 +975,7 @@ export default function Admin() {
                       </svg>
                     </div>
                     <div>
-                      <div className="stat-num">24.4k</div>
+                      <div className="stat-num">{formatStatCount(adminStats.totalAppointments)}</div>
                       <div className="stat-lbl">Appointments</div>
                     </div>
                   </div>
@@ -956,7 +987,7 @@ export default function Admin() {
                       </svg>
                     </div>
                     <div>
-                      <div className="stat-num">166.3k</div>
+                      <div className="stat-num">{formatStatCount(adminStats.uniquePatients)}</div>
                       <div className="stat-lbl">Total Patient</div>
                     </div>
                   </div>
@@ -967,7 +998,7 @@ export default function Admin() {
                       </svg>
                     </div>
                     <div>
-                      <div className="stat-num">10</div>
+                      <div className="stat-num">{formatStatCount(adminStats.pendingCount)}</div>
                       <div className="stat-lbl">Pending</div>
                     </div>
                   </div>
@@ -979,7 +1010,7 @@ export default function Admin() {
                       </svg>
                     </div>
                     <div>
-                      <div className="stat-num">0</div>
+                      <div className="stat-num">{formatStatCount(adminStats.cancelledCount)}</div>
                       <div className="stat-lbl">Cancelled</div>
                     </div>
                   </div>
@@ -989,97 +1020,46 @@ export default function Admin() {
                   <div className="panel">
                     <div className="panel-header">
                       <span className="panel-title">Appointment Request</span>
-                      <span className="view-all">View All →</span>
-                    </div>
-                    <div className="appt-row">
-                      <div className="avatar" style={{ width: 28, height: 28, fontSize: 10 }}>
-                        BK
-                      </div>
-                      <div className="appt-info">
-                        <div className="appt-name">Bogdan Krivenchenko</div>
-                        <div className="appt-sub">45 Male, 12 April 9:30</div>
-                      </div>
-                      <span className="badge declined">Declined</span>
-                    </div>
-                    <div className="appt-row">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 10,
-                          background: 'linear-gradient(135deg,#f472b6,#ec4899)',
-                        }}
+                      <button
+                        type="button"
+                        className="view-all"
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit' }}
+                        onClick={() => goNav('appointment', 'appointment')}
                       >
-                        JW
-                      </div>
-                      <div className="appt-info">
-                        <div className="appt-name">Jenny Wilson</div>
-                        <div className="appt-sub">Female, 25 April 10:30 AM</div>
-                      </div>
-                      <span className="badge confirmed">Confirmed</span>
+                        View All →
+                      </button>
                     </div>
-                    <div className="appt-row">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 10,
-                          background: 'linear-gradient(135deg,#34d399,#10b981)',
-                        }}
-                      >
-                        DR
-                      </div>
-                      <div className="appt-info">
-                        <div className="appt-name">Dianne Russel</div>
-                        <div className="appt-sub">Male, 45 Today 14:30 PM</div>
-                      </div>
-                      <span className="badge confirmed">Confirmed</span>
-                    </div>
-                    <div className="appt-row">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 10,
-                          background: 'linear-gradient(135deg,#fbbf24,#f59e0b)',
-                        }}
-                      >
-                        AB
-                      </div>
-                      <div className="appt-info">
-                        <div className="appt-name">Annette Black</div>
-                        <div className="appt-sub">Male, 45 Today 14:30 PM</div>
-                      </div>
-                      <span className="badge declined">Declined</span>
-                    </div>
-                    <div className="appt-row">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 10,
-                          background: 'linear-gradient(135deg,#a78bfa,#7c3aed)',
-                        }}
-                      >
-                        AJ
-                      </div>
-                      <div className="appt-info">
-                        <div className="appt-name">Angelina Jully</div>
-                        <div className="appt-sub">Male, 45 Today 14:30 PM</div>
-                      </div>
-                      <span className="badge confirmed">Confirmed</span>
-                    </div>
+                    {appointmentRequests.length === 0 ? (
+                      <p style={{ padding: '16px', color: 'var(--muted)', fontSize: 13 }}>No pending requests.</p>
+                    ) : (
+                      appointmentRequests.slice(0, 5).map((row) => (
+                        <div key={row.id} className="appt-row">
+                          <div
+                            className="avatar"
+                            style={{
+                              width: 28,
+                              height: 28,
+                              fontSize: 10,
+                              background: row.avatarBg,
+                            }}
+                          >
+                            {row.initials}
+                          </div>
+                          <div className="appt-info">
+                            <div className="appt-name">{row.name}</div>
+                            <div className="appt-sub">{row.detail}</div>
+                          </div>
+                          <span className="badge pending">Pending</span>
+                        </div>
+                      ))
+                    )}
                   </div>
 
                   <div className="panel">
                     <div className="panel-header">
                       <span className="panel-title">Patients</span>
                       <span className="view-all" style={{ fontSize: 11, color: 'var(--muted)' }}>
-                        2020 ▾
+                        Last 30 days
                       </span>
                     </div>
                     <div className="patient-stat">
@@ -1090,10 +1070,12 @@ export default function Admin() {
                         </svg>
                       </div>
                       <div>
-                        <div className="ps-num">24.4k</div>
+                        <div className="ps-num">{formatStatCount(adminStats.newPatients)}</div>
                         <div className="ps-lbl">New Patient</div>
                       </div>
-                      <div className="ps-trend">↑ 15%</div>
+                      <div className="ps-trend" style={{ color: 'var(--muted)', fontSize: 11 }}>
+                        first visit
+                      </div>
                     </div>
                     <div className="patient-stat">
                       <div className="ps-icon" style={{ background: '#fef9c3' }}>
@@ -1103,67 +1085,84 @@ export default function Admin() {
                         </svg>
                       </div>
                       <div>
-                        <div className="ps-num">166.3k</div>
-                        <div className="ps-lbl">Old Patient</div>
+                        <div className="ps-num">{formatStatCount(adminStats.returningPatients)}</div>
+                        <div className="ps-lbl">Returning</div>
                       </div>
-                      <div className="ps-trend">↑ 15%</div>
+                      <div className="ps-trend" style={{ color: 'var(--muted)', fontSize: 11 }}>
+                        prior patients
+                      </div>
                     </div>
                     <div className="panel-header" style={{ marginTop: 10 }}>
                       <span className="panel-title" style={{ fontSize: 13 }}>
                         Gender
                       </span>
-                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>2020 ▾</span>
+                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>all time</span>
                     </div>
-                    <div className="donut-wrap">
-                      <svg width="80" height="80" viewBox="0 0 80 80">
-                        <circle cx="40" cy="40" r="28" fill="none" stroke="#e2e8f0" strokeWidth="12" />
-                        <circle
-                          cx="40"
-                          cy="40"
-                          r="28"
-                          fill="none"
-                          stroke="#3b82f6"
-                          strokeWidth="12"
-                          strokeDasharray="79 97"
-                          strokeDashoffset="-25"
-                          strokeLinecap="round"
+                    <div className="donut-wrap" style={{ padding: '8px 0' }}>
+                      {genderTotal === 0 ? (
+                        <div
+                          style={{
+                            height: 12,
+                            borderRadius: 6,
+                            background: '#e2e8f0',
+                            width: '100%',
+                          }}
                         />
-                        <circle
-                          cx="40"
-                          cy="40"
-                          r="28"
-                          fill="none"
-                          stroke="#ec4899"
-                          strokeWidth="12"
-                          strokeDasharray="54 122"
-                          strokeDashoffset="-104"
-                          strokeLinecap="round"
-                        />
-                        <circle
-                          cx="40"
-                          cy="40"
-                          r="28"
-                          fill="none"
-                          stroke="#f59e0b"
-                          strokeWidth="12"
-                          strokeDasharray="43 133"
-                          strokeDashoffset="-158"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+                      ) : (
+                        <div
+                          style={{
+                            display: 'flex',
+                            height: 12,
+                            borderRadius: 6,
+                            overflow: 'hidden',
+                            width: '100%',
+                          }}
+                        >
+                          {adminStats.gender.male > 0 ? (
+                            <div
+                              style={{
+                                width: `${genderPct(adminStats.gender.male)}%`,
+                                background: '#3b82f6',
+                                minWidth: adminStats.gender.male > 0 ? 4 : 0,
+                              }}
+                              title={`Male ${adminStats.gender.male}`}
+                            />
+                          ) : null}
+                          {adminStats.gender.female > 0 ? (
+                            <div
+                              style={{
+                                width: `${genderPct(adminStats.gender.female)}%`,
+                                background: '#ec4899',
+                                minWidth: adminStats.gender.female > 0 ? 4 : 0,
+                              }}
+                              title={`Female ${adminStats.gender.female}`}
+                            />
+                          ) : null}
+                          {adminStats.gender.other > 0 ? (
+                            <div
+                              style={{
+                                width: `${genderPct(adminStats.gender.other)}%`,
+                                background: '#f59e0b',
+                                minWidth: adminStats.gender.other > 0 ? 4 : 0,
+                              }}
+                              title={`Other / not set ${adminStats.gender.other}`}
+                            />
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                     <div className="donut-legend">
                       <div className="legend-item">
                         <div className="legend-dot" style={{ background: '#3b82f6' }} />
-                        Male 45%
+                        Male {genderPct(adminStats.gender.male)}% ({adminStats.gender.male})
                       </div>
                       <div className="legend-item">
                         <div className="legend-dot" style={{ background: '#ec4899' }} />
-                        Female 30%
+                        Female {genderPct(adminStats.gender.female)}% ({adminStats.gender.female})
                       </div>
                       <div className="legend-item">
                         <div className="legend-dot" style={{ background: '#f59e0b' }} />
-                        Child 25%
+                        Other / not set {genderPct(adminStats.gender.other)}% ({adminStats.gender.other})
                       </div>
                     </div>
                   </div>
@@ -1172,70 +1171,34 @@ export default function Admin() {
                     <div className="panel-header">
                       <span className="panel-title">Today Appointments</span>
                     </div>
-                    <div className="today-row">
-                      <div className="avatar" style={{ width: 28, height: 28, fontSize: 10 }}>
-                        JS
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="today-name">Jhon Smith</div>
-                        <div className="today-sub">Clinic Consulting</div>
-                      </div>
-                      <span className="badge ongoing">Ongoing</span>
-                    </div>
-                    <div className="today-row">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 10,
-                          background: 'linear-gradient(135deg,#34d399,#10b981)',
-                        }}
-                      >
-                        FM
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="today-name">Frank Murray</div>
-                        <div className="today-sub">Clinic Consulting</div>
-                      </div>
-                      <span className="today-time">10:25</span>
-                    </div>
-                    <div className="today-row">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 10,
-                          background: 'linear-gradient(135deg,#f472b6,#ec4899)',
-                        }}
-                      >
-                        EL
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="today-name">Ella Lucia</div>
-                        <div className="today-sub"> Clinic Consulting</div>
-                      </div>
-                      <span className="today-time">11:30</span>
-                    </div>
-                    <div className="today-row">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 10,
-                          background: 'linear-gradient(135deg,#a78bfa,#7c3aed)',
-                        }}
-                      >
-                        AD
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="today-name">Alyssa Dehn</div>
-                        <div className="today-sub">Clinic Consulting</div>
-                      </div>
-                      <span className="today-time">12:20</span>
-                    </div>
+                    {todayAppointments.length === 0 ? (
+                      <p style={{ padding: '16px', color: 'var(--muted)', fontSize: 13 }}>Nothing on your schedule today.</p>
+                    ) : (
+                      todayAppointments.slice(0, 5).map((row) => (
+                        <div key={row.id} className="today-row">
+                          <div
+                            className="avatar"
+                            style={{
+                              width: 28,
+                              height: 28,
+                              fontSize: 10,
+                              background: row.avatarBg,
+                            }}
+                          >
+                            {row.initials}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="today-name">{row.name}</div>
+                            <div className="today-sub">{row.type}</div>
+                          </div>
+                          {row.right?.kind === 'status' ? (
+                            <span className="badge ongoing">{row.right.label}</span>
+                          ) : (
+                            <span className="today-time">{row.right?.value}</span>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -1261,102 +1224,40 @@ export default function Admin() {
                     <div className="th">Status</div>
                     <div className="th" />
                   </div>
-                  <div className="table-row">
-                    <div className="td td-name">
-                      <div className="avatar" style={{ width: 24, height: 24, fontSize: 9 }}>
-                        DL
+                  {recentPatients.length === 0 ? (
+                    <p style={{ padding: '20px 16px', color: 'var(--muted)', fontSize: 13 }}>
+                      No recent visits yet. Bookings with you as the doctor will show here.
+                    </p>
+                  ) : (
+                    recentPatients.map((row) => (
+                      <div key={row.id} className="table-row">
+                        <div className="td td-name">
+                          <div
+                            className="avatar"
+                            style={{
+                              width: 24,
+                              height: 24,
+                              fontSize: 9,
+                              background: row.avatarBg,
+                            }}
+                          >
+                            {row.initials}
+                          </div>
+                          {row.patientName}
+                        </div>
+                        <div className="td muted">{row.visitId}</div>
+                        <div className="td muted">{row.dateDisplay}</div>
+                        <div className="td">{row.gender}</div>
+                        <div className="td">{row.diseases}</div>
+                        <div className="td">
+                          <span className="badge" style={recentStatusStyle(row.statusLabel)}>
+                            {row.statusLabel}
+                          </span>
+                        </div>
+                        <div className="td muted">⋮</div>
                       </div>
-                      Deveon Lane
-                    </div>
-                    <div className="td muted">OPD-2345</div>
-                    <div className="td muted">5/7/21</div>
-                    <div className="td">Male</div>
-                    <div className="td">Diabetes</div>
-                    <div className="td">
-                      <span className="badge" style={{ background: '#f0fdf4', color: '#16a34a' }}>
-                        Out-Patient
-                      </span>
-                    </div>
-                    <div className="td muted">⋮</div>
-                  </div>
-                  <div className="table-row">
-                    <div className="td td-name">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 24,
-                          height: 24,
-                          fontSize: 9,
-                          background: 'linear-gradient(135deg,#fbbf24,#f59e0b)',
-                        }}
-                      >
-                        AF
-                      </div>
-                      Albert Flores
-                    </div>
-                    <div className="td muted">IPD-2424</div>
-                    <div className="td muted">5/7/21</div>
-                    <div className="td">Male</div>
-                    <div className="td">Diabetes</div>
-                    <div className="td">
-                      <span className="badge" style={{ background: '#f0fdf4', color: '#16a34a' }}>
-                        Out-Patient
-                      </span>
-                    </div>
-                    <div className="td muted">⋮</div>
-                  </div>
-                  <div className="table-row">
-                    <div className="td td-name">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 24,
-                          height: 24,
-                          fontSize: 9,
-                          background: 'linear-gradient(135deg,#f472b6,#ec4899)',
-                        }}
-                      >
-                        EL
-                      </div>
-                      Ella Lucia
-                    </div>
-                    <div className="td muted">OPD-2345</div>
-                    <div className="td muted">8/15/21</div>
-                    <div className="td">Male</div>
-                    <div className="td">Diabetes</div>
-                    <div className="td">
-                      <span className="badge" style={{ background: '#f0fdf4', color: '#16a34a' }}>
-                        Out-Patient
-                      </span>
-                    </div>
-                    <div className="td muted">⋮</div>
-                  </div>
-                  <div className="table-row">
-                    <div className="td td-name">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 24,
-                          height: 24,
-                          fontSize: 9,
-                          background: 'linear-gradient(135deg,#34d399,#10b981)',
-                        }}
-                      >
-                        AF
-                      </div>
-                      Albert Flores
-                    </div>
-                    <div className="td muted">IPD-2424</div>
-                    <div className="td muted">8/30/21</div>
-                    <div className="td">Male</div>
-                    <div className="td">Diabetes</div>
-                    <div className="td">
-                      <span className="badge" style={{ background: '#f0fdf4', color: '#16a34a' }}>
-                        Out-Patient
-                      </span>
-                    </div>
-                    <div className="td muted">⋮</div>
-                  </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -1429,7 +1330,7 @@ export default function Admin() {
                   <div className="panel-header">
                     <span className="panel-title">Appointment Request</span>
                     <button type="button" className="view-all" onClick={() => navigate('/appointments')}>
-                      View All →
+                    
                     </button>
                   </div>
                   {appointmentRequests.map((row) => (
@@ -1870,14 +1771,10 @@ export default function Admin() {
               <div className="settings-layout">
                 <div className="profile-sidebar">
                   <div className="profile-avatar-wrap">
-                    <AvatarImg
-                      src="https://randomuser.me/api/portraits/men/32.jpg"
-                      initials="SC"
-                      className="profile-avatar"
-                    />
+                    <AvatarImg src={profileImg} initials={userInitials} className="profile-avatar" />
                   </div>
-                  <div className="profile-name">Dr. Stephen Conley</div>
-                  <div className="profile-spec">Cardiologist</div>
+                  <div className="profile-name">{displayName}</div>
+                  <div className="profile-spec">{displaySpec}</div>
                   <button type="button" className="edit-btn">
                     <svg viewBox="0 0 24 24">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />

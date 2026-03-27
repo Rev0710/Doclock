@@ -4,6 +4,15 @@ const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
 const AVATAR_KEY = 'doclock_avatar';
 
+/** Stable unique image per account: uploaded `user.avatar`, else DiceBear from id/email/name. */
+export function getProfileImageSrc(user) {
+  if (!user) return null;
+  const a = user.avatar;
+  if (typeof a === 'string' && a.trim().length > 0) return a.trim();
+  const seed = encodeURIComponent(String(user.email || user.name || user._id || user.id || 'user'));
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundType=gradientLinear`;
+}
+
 export function setAuthToken(token) {
   if (!token) localStorage.removeItem(TOKEN_KEY);
   else localStorage.setItem(TOKEN_KEY, token);
@@ -28,12 +37,22 @@ export function getAuthUser() {
 }
 
 export function setAvatarDataUrl(dataUrl) {
-  if (!dataUrl) localStorage.removeItem(AVATAR_KEY);
-  else localStorage.setItem(AVATAR_KEY, dataUrl);
+  const u = getAuthUser();
+  if (u) {
+    setAuthUser({ ...u, avatar: dataUrl ? String(dataUrl) : '' });
+  }
+  try {
+    localStorage.removeItem(AVATAR_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
+/** @deprecated Prefer `getProfileImageSrc(user)` with `useAuth().user` */
 export function getAvatarDataUrl() {
-  return localStorage.getItem(AVATAR_KEY);
+  const u = getAuthUser();
+  if (u?.avatar) return u.avatar;
+  return localStorage.getItem(AVATAR_KEY) || '';
 }
 
 function normalizeApiUrl(path) {
@@ -92,6 +111,14 @@ export const adminApi = {
   },
   async getTodayAppointments() {
     const { data } = await api.get('/appointments/admin/today');
+    return data;
+  },
+  async getAdminStats() {
+    const { data } = await api.get('/appointments/admin/stats');
+    return data;
+  },
+  async getRecentPatients(limit = 10) {
+    const { data } = await api.get('/appointments/admin/recent-patients', { params: { limit } });
     return data;
   },
   async getPaymentsReceived() {

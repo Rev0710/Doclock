@@ -17,6 +17,11 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    try {
+      localStorage.removeItem('doclock_avatar')
+    } catch {
+      /* ignore */
+    }
     setToken(null)
     setUser(null)
   }
@@ -79,8 +84,13 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
+  const deleteProfile = async () => {
+    await api.delete('/users/profile')
+    logout()
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, deleteProfile }}>
       {children}
     </AuthContext.Provider>
   )

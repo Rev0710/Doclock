@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi, getAuthUser, getAvatarDataUrl, setAuthUser } from '../lib/api';
+import { authApi, getAuthUser, getProfileImageSrc, setAuthUser } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
 import { useAppointments } from '../hooks/useAppointments.js';
 import { formatVisitDate, specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
@@ -16,7 +16,6 @@ export default function Home() {
   const { user, logout } = useAuth();
   const { appointments, loading: visitsLoading, loadError: visitsLoadError, loadAppointments } = useAppointments();
   const [name, setName] = useState(() => user?.name || getAuthUser()?.name || 'user');
-  const [avatar, setAvatar] = useState(() => getAvatarDataUrl() || '');
 
   const upcomingVisits = useMemo(() => {
     const list = Array.isArray(appointments) ? appointments : [];
@@ -69,13 +68,7 @@ export default function Home() {
     if (user?.name) setName(user.name);
   }, [user]);
 
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'doclock_avatar') setAvatar(getAvatarDataUrl() || '');
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  const profileImg = getProfileImageSrc(getAuthUser() || user);
 
   const commonServices = [
     { title: "Children's Vaccinations", icon: '🧸' },
@@ -168,7 +161,11 @@ export default function Home() {
                 <path d="M13.7 21a2 2 0 01-3.4 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
-            {avatar ? <img className="home-avatar home-avatarHeader" src={avatar} alt="Profile" /> : <div className="home-avatar home-avatarHeader" aria-hidden="true" />}
+            {profileImg ? (
+              <img className="home-avatar home-avatarHeader" src={profileImg} alt="" />
+            ) : (
+              <div className="home-avatar home-avatarHeader" aria-hidden="true" />
+            )}
           </div>
         </header>
 

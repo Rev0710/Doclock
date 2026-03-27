@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAvatarDataUrl } from '../lib/api';
+import { getAuthUser, getProfileImageSrc } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
 import { useAppointments } from '../hooks/useAppointments.js';
 import { formatVisitDate, specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
@@ -13,12 +13,12 @@ const NavIcon = ({ children }) => (
 
 export default function Appointments() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { appointments, loading, loadError, loadAppointments, updateAppointment, removeAppointment } = useAppointments();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('upcoming'); // upcoming | completed | cancelled
   const [actionError, setActionError] = useState('');
-  const avatar = getAvatarDataUrl();
+  const profileImg = getProfileImageSrc(getAuthUser() || user);
 
   useEffect(() => {
     document.title = 'Doclock | Appointments';
@@ -95,7 +95,7 @@ export default function Appointments() {
   const wideCardBase = (v, actions) => (
     <article key={v.id} className="appts-wideCard" aria-label={`${v.status} appointment`}>
       <div className="appts-wideTop">
-        {avatar ? <img className="appts-wideAvatar" src={avatar} alt="" /> : <div className="appts-wideAvatar" aria-hidden="true" />}
+        {profileImg ? <img className="appts-wideAvatar" src={profileImg} alt="" /> : <div className="appts-wideAvatar" aria-hidden="true" />}
         <div className="appts-wideInfo">
           <div className="appts-wideName">{v.name}</div>
           <div className="appts-wideSpec">{v.specialty}</div>
@@ -305,7 +305,7 @@ export default function Appointments() {
                 <path d="M13.7 21a2 2 0 01-3.4 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
-            {avatar ? <img className="home-avatar home-avatarHeader" src={avatar} alt="Profile" /> : <div className="home-avatar home-avatarHeader" aria-hidden="true" />}
+            {profileImg ? <img className="home-avatar home-avatarHeader" src={profileImg} alt="" /> : <div className="home-avatar home-avatarHeader" aria-hidden="true" />}
           </div>
         </header>
 

@@ -71,15 +71,21 @@ const getMe = async (req, res) => {
 
 const bookAppointment = async (req, res) => {
   try {
-    const { date, time, service } = req.body;
+    const { date, time, service, doctorId } = req.body;
     if (!date || !time || !service) {
       return res.status(400).json({ message: 'Date, time, and service are required' });
     }
+    let doctor = null;
+    if (doctorId != null && String(doctorId).trim() && mongoose.Types.ObjectId.isValid(String(doctorId))) {
+      doctor = new mongoose.Types.ObjectId(String(doctorId));
+    }
     const appointment = await Appointment.create({
       user: userObjectId(req),
+      doctor,
       date: String(date),
       time: String(time),
       service: String(service),
+      status: 'pending',
     });
     res.status(201).json({ success: true, appointment });
   } catch (error) {

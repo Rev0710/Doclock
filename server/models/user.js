@@ -53,6 +53,11 @@ const userSchema = new mongoose.Schema({
   birthDate: { 
     type: Date 
   },
+  /** Data URL or https URL — set via PUT /users/profile or upload flow */
+  avatar: {
+    type: String,
+    default: "",
+  },
 }, 
 { timestamps: true });
 

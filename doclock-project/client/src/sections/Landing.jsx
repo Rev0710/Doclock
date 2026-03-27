@@ -60,7 +60,9 @@ const Landing = () => {
         </div>
           <img className="crossIcon" src={crossIcon} alt="" />
         <div className="hero-copy">
-          <h1 > Fast to<br /><em> press, No more <br /></em></h1>
+          <h1 className="hero-title">
+            Fast to <em>book</em>, no more waiting.
+          </h1>
           <p>Providing compassionate, world-class healthcare tailored to every patient. Your health, our priority — every step of the way.</p>
           <button className="btn-consult">Book a Consultation</button>
         </div>

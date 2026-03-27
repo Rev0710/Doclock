@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import heroImg from '../assets/hero_img.png';
-import { apiFetch, getAuthUser, getAvatarDataUrl } from '../lib/api';
+import { apiFetch, getAuthUser, getProfileImageSrc } from '../lib/api';
 import { useAppointments } from '../hooks/useAppointments.js';
+import { useAuth } from '../hooks/useAuth.js';
 
 const NavIcon = ({ children }) => (
   <span className="home-navIcon" aria-hidden="true">
@@ -14,12 +15,14 @@ export default function SerApntmt() {
   const navigate = useNavigate();
   const location = useLocation();
   const picked = location.state || {};
+  const doctorId = picked.doctorId;
   const doctorName = picked.doctorName || 'Dr. James Tan';
   const specialty = picked.specialty || 'Dermatologist';
   const fee = 650;
 
   const { loadAppointments } = useAppointments();
-  const avatar = getAvatarDataUrl();
+  const { user } = useAuth();
+  const profileImg = getProfileImageSrc(getAuthUser() || user);
   const dateInputRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('10:30');
@@ -60,6 +63,7 @@ export default function SerApntmt() {
           date: selectedDate,
           time: selectedTime || '',
           service: `${specialty} — ${doctorName} — ${who}${patientAge ? ` (${patientAge})` : ''}`,
+          ...(doctorId ? { doctorId: String(doctorId) } : {}),
         },
       });
 
@@ -189,7 +193,7 @@ export default function SerApntmt() {
                 <path d="M13.7 21a2 2 0 01-3.4 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
-            {avatar ? <img className="home-avatar home-avatarHeader" src={avatar} alt="Profile" /> : <div className="home-avatar home-avatarHeader" aria-hidden="true" />}
+            {profileImg ? <img className="home-avatar home-avatarHeader" src={profileImg} alt="" /> : <div className="home-avatar home-avatarHeader" aria-hidden="true" />}
           </div>
         </header>
 

@@ -47,7 +47,16 @@ export function AppointmentProvider({ children }) {
 
   const addAppointment = async (formData) => {
     try {
-      await appointmentsAPI.create(formData)
+      const service =
+        formData.service ||
+        [formData.specialty, formData.doctorName].filter(Boolean).join(' — ') ||
+        'Consultation'
+      await appointmentsAPI.create({
+        date: formData.date,
+        time: formData.time,
+        service: String(service),
+        ...(formData.doctorId ? { doctorId: String(formData.doctorId) } : {}),
+      })
       await loadAppointments()
       return { success: true }
     } catch (error) {

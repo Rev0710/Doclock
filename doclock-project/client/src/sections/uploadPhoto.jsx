@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MarketingNavbar from '../components/MarketingNavbar.jsx';
-import { getAuthUser, setAuthUser, setAvatarDataUrl } from '../lib/api';
+import { getAuthUser } from '../lib/api';
+import { useAuth } from '../hooks/useAuth.js';
 
 export default function UploadPhoto() {
   const navigate = useNavigate();
+  const { updateProfile } = useAuth();
   const [fullName, setFullName] = useState('');
   const [file, setFile] = useState(null);
 
@@ -79,8 +81,8 @@ export default function UploadPhoto() {
             onSubmit={async (e) => {
               e.preventDefault();
               const current = getAuthUser();
-              if (fullName.trim()) setAuthUser({ ...(current || {}), name: fullName.trim() });
-
+              const payload = {};
+              if (fullName.trim()) payload.name = fullName.trim();
               if (file) {
                 const dataUrl = await new Promise((resolve, reject) => {
                   const reader = new FileReader();
@@ -88,9 +90,15 @@ export default function UploadPhoto() {
                   reader.onerror = () => reject(new Error('Failed to read image'));
                   reader.readAsDataURL(file);
                 });
-                setAvatarDataUrl(dataUrl);
+                payload.avatar = dataUrl;
               }
-
+              if (Object.keys(payload).length > 0) {
+                try {
+                  await updateProfile(payload);
+                } catch {
+                  /* still continue to app */
+                }
+              }
               const role = current?.role;
               navigate(role === 'doctor' || role === 'admin' ? '/admin' : '/home');
             }}

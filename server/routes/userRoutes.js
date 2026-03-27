@@ -9,7 +9,7 @@ const router = express.Router()
 router.get("/doctors", protect, async (req, res) => {
   try {
     const doctors = await User.find({ role: "doctor" })
-      .select("name specialty city state country address availabilityDays availabilityHours")
+      .select("name specialty city state country address availabilityDays availabilityHours avatar")
       .sort({ name: 1 })
       .lean();
 
@@ -26,6 +26,7 @@ router.get("/doctors", protect, async (req, res) => {
         city: cityLine,
         days: d.availabilityDays || "Mon – Fri",
         time: d.availabilityHours || "9:00 – 17:00",
+        avatar: typeof d.avatar === "string" ? d.avatar : "",
       };
     });
 
@@ -62,6 +63,9 @@ router.put("/profile", protect, async (req, res) => {
       specialty,
       availabilityDays,
       availabilityHours,
+      avatar,
+      gender,
+      birthDate,
     } = req.body
 
     const user = await User.findById(req.user.id)
@@ -93,20 +97,27 @@ router.put("/profile", protect, async (req, res) => {
       if (availabilityHours !== undefined) user.availabilityHours = availabilityHours
     }
 
+    if (avatar !== undefined) {
+      if (avatar === null || avatar === "") user.avatar = ""
+      else if (typeof avatar === "string") user.avatar = avatar
+    }
+    if (gender !== undefined) user.gender = gender
+    if (birthDate !== undefined) {
+      if (!birthDate) user.birthDate = undefined
+      else {
+        const d = new Date(birthDate)
+        if (!Number.isNaN(d.getTime())) user.birthDate = d
+      }
+    }
+
     // Plain text; User model pre('save') hashes it (avoid double-hash)
     if (password && password.length >= 8) {
       user.password = password
     }
 
-    const updated = await user.save()
-
-    const userResponse = {
-      id: updated._id,
-      name: updated.name,
-      email: updated.email,
-      phone: updated.phone,
-      role: updated.role,
-    }
+    await user.save()
+    const fresh = await User.findById(req.user.id).select("-password")
+    const userResponse = fresh.toJSON()
 
     res.json({ success: true, message: "Profile updated successfully", user: userResponse })
   } catch (error) {

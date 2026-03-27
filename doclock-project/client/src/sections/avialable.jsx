@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAvatarDataUrl } from '../lib/api';
+import { getAuthUser, getProfileImageSrc } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
 import { usersAPI } from '../services/api.js';
 
@@ -12,12 +12,12 @@ const NavIcon = ({ children }) => (
 
 export default function Avialable() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [query, setQuery] = useState('');
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const avatar = getAvatarDataUrl();
+  const profileImg = getProfileImageSrc(getAuthUser() || user);
 
   const fetchDoctors = useCallback(async () => {
     setLoading(true);
@@ -162,7 +162,7 @@ export default function Avialable() {
                 <path d="M13.7 21a2 2 0 01-3.4 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
-            {avatar ? <img className="home-avatar home-avatarHeader" src={avatar} alt="Profile" /> : <div className="home-avatar home-avatarHeader" aria-hidden="true" />}
+            {profileImg ? <img className="home-avatar home-avatarHeader" src={profileImg} alt="" /> : <div className="home-avatar home-avatarHeader" aria-hidden="true" />}
           </div>
         </header>
 
@@ -214,7 +214,13 @@ export default function Avialable() {
                 ) : (
                   filtered.map((d, idx) => (
                     <article key={d.id} className="avail-card">
-                      <div className={`avail-avatar a${(idx % 3) + 1}`} aria-hidden="true" />
+                      <div className="avail-avatar-wrap" aria-hidden="true">
+                        <img
+                          className="avail-avatar-img"
+                          src={getProfileImageSrc({ _id: d.id, name: d.name, avatar: d.avatar })}
+                          alt=""
+                        />
+                      </div>
 
                       <div className="avail-main">
                         <div className="avail-topLine">

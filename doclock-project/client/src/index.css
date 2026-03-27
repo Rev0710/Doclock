@@ -20,10 +20,22 @@
         --hero-bg: #eef4ff;
     }
     
+    html {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
     body {
         font-family: "POPPINS";
         background: var(--bg);
         color: var(--text);
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    .landing-page {
+        width: 100%;
+        max-width: 100%;
         overflow-x: hidden;
     }
     /* ── NAV ── */
@@ -39,12 +51,14 @@
         align-items: center;
         height: 64px;
         gap: 2rem;
+        flex-wrap: nowrap;
     }
     
     .logo {
         height: 60px;
         display: flex;
         align-items: center;
+        flex-shrink: 0;
     }
     
     .logo span {
@@ -93,11 +107,33 @@
         background: #1d4ed8;
         transform: translateY(-1px);
     }
+
+    .nav-burger {
+        display: none;
+        margin-left: 0;
+        margin-right: 0;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--white);
+        color: var(--text);
+        cursor: pointer;
+        flex-shrink: 0;
+        touch-action: manipulation;
+    }
+
+    .nav-burger:hover {
+        background: var(--bg);
+    }
     /* ── HERO ── */
     
     .hero {
         background: var(--hero-bg);
         width: 100%;
+        max-width: 100%;
         min-height: 820px;
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -105,6 +141,10 @@
         padding: 0 5%;
         position: relative;
         overflow: hidden;
+    }
+
+    .hero > * {
+        min-width: 0;
     }
     
     .hero::before {
@@ -127,7 +167,7 @@
     }
     
     .hero-image img {
-        width: 650px;
+        width: min(650px, 100%);
         height: auto;
         border-radius: 0;
         display: block;
@@ -157,15 +197,16 @@
         justify-content: center;
     }
     
-    .hero-copy h1 {
+    .hero-title {
         font-family: "POPPINS";
         font-size: clamp(30px, 3.8vw, 52px);
-        line-height: 1.30;
-        letter-spacing: 13%;
+        line-height: 1.25;
+        letter-spacing: -0.02em;
         margin-bottom: 1.2rem;
+        max-width: min(100%, 18rem);
     }
-    
-    .hero-copy h1 em {
+
+    .hero-title em {
         font-style: italic;
         color: var(--blue);
     }
@@ -221,6 +262,13 @@
         gap: 5rem;
         align-items: center;
         background: var(--white);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .about > * {
+        min-width: 0;
     }
     
     .about-text .eyebrow {
@@ -301,20 +349,22 @@
         border-radius: 16px;
         overflow: hidden;
         position: relative;
-        width: 600px;
-        height: 380px;
+        width: 100%;
+        max-width: 600px;
+        aspect-ratio: 600 / 380;
+        height: auto;
+        margin-inline: auto;
     }
     
     .about-image img {
-        width: 620px;
-        height: 380px;
+        width: 100%;
+        height: 100%;
         border-radius: 16px;
         object-fit: cover;
-        background-position: center;
+        object-position: center;
         display: block;
         filter: saturate(0.9);
         transition: transform 0.5s ease;
-        padding-right: 1rem;
     }
     
     .about-image:hover img {
@@ -499,7 +549,8 @@
         .hero {
             grid-template-columns: 1fr;
             min-height: auto;
-            padding-top: 3rem;
+            padding: 3rem 5% 0;
+            box-sizing: border-box;
         }
         .hero-image {
             order: -1;
@@ -510,9 +561,65 @@
         .hero-copy {
             padding: 2rem 0 3rem;
         }
+
+        .hero-title {
+            font-size: clamp(1.65rem, 7.5vw, 2.35rem);
+            max-width: 100%;
+        }
+
+        .crossIcon {
+            width: 56px;
+            margin: 0.75rem 0 0 0.75rem;
+        }
+
+        .stethoscope {
+            width: 90px;
+            margin: 0 0.75rem 4rem 0;
+            opacity: 0.4;
+        }
+
+        nav {
+            gap: 0.5rem;
+            padding: 0 4%;
+        }
+
+        .logo {
+            height: 48px;
+        }
+
         .about {
             grid-template-columns: 1fr;
             gap: 3rem;
+            padding: 48px 5%;
+        }
+
+        .about-image {
+            max-width: 100%;
+        }
+
+        .services {
+            padding: 48px 5%;
+        }
+
+        .services-block {
+            padding: 28px 20px 24px;
+            box-sizing: border-box;
+        }
+
+        .cards-row {
+            grid-template-columns: 1fr;
+        }
+
+        .testimonial {
+            padding: 48px 5%;
+        }
+
+        .cta {
+            padding: 48px 5%;
+        }
+
+        footer {
+            padding: 24px 5%;
         }
         .services-grid {
             grid-template-columns: 1fr;
@@ -520,8 +627,53 @@
         .cta {
             flex-direction: column;
         }
+
+        .nav-burger {
+            display: inline-flex;
+            flex-shrink: 0;
+        }
+
         .nav-links {
             display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+            margin: 0;
+            padding: 8px 5% 16px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+            list-style: none;
+            z-index: 150;
+        }
+
+        .nav-links li {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-links li:last-child {
+            border-bottom: none;
+        }
+
+        .nav-links a {
+            display: block;
+            padding: 14px 0;
+            font-size: 15px;
+        }
+
+        .nav-links.nav-links-open {
+            display: flex;
+        }
+
+        .btn-book {
+            margin-left: auto;
+            flex-shrink: 0;
+            font-size: 13px;
+            padding: 9px 14px;
         }
     }
     /* ── SERVICES SECTION ── */
@@ -2183,6 +2335,22 @@
         background: radial-gradient(circle at 35% 30%, #a7f3d0 0, #34d399 55%, #059669 100%);
     }
 
+    .avail-avatar-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #e5e7eb;
+    }
+
+    .avail-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
     .avail-topLine {
         display: flex;
         align-items: center;
@@ -3439,6 +3607,192 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* ── DOCLOCK APP: dashboard & forms (phones / small tablets) ── */
+    @media (max-width: 768px) {
+        .home-dashboard {
+            flex-direction: column;
+            min-height: 100dvh;
+            height: auto;
+            max-height: none;
+            overflow-x: hidden;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        .home-sidebar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: auto;
+            width: 100%;
+            max-height: none;
+            border-right: none;
+            border-top: 1px solid #d1d5db;
+            padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+            flex-direction: column;
+            gap: 6px;
+            z-index: 200;
+            box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.12);
+            background: #e5e7eb;
+        }
+
+        .home-sidebarLogo {
+            display: none;
+        }
+
+        .admin-root .home-sidebarLogo {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            padding-bottom: 4px;
+        }
+
+        .admin-root .admin-brand-logo {
+            height: 28px;
+            width: auto;
+        }
+
+        .home-nav {
+            flex-direction: row;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 8px;
+            padding-bottom: 2px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .home-navItem {
+            flex: 0 0 auto;
+            min-height: 48px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+
+        .home-navItemLogout {
+            margin-top: 0;
+        }
+
+        .home-main {
+            flex: 1;
+            min-height: 0;
+            overflow: visible;
+            width: 100%;
+            padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .home-mainInner {
+            padding: 0 12px 16px;
+            overflow-x: hidden;
+        }
+
+        .home-topbar {
+            padding: 10px 12px;
+            height: auto;
+            min-height: 56px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .home-searchWrap {
+            max-width: none;
+            min-width: 0;
+            flex: 1 1 140px;
+            height: 44px;
+        }
+
+        .home-greeting {
+            padding: 16px 12px 12px;
+        }
+
+        .home-hello {
+            font-size: clamp(18px, 5vw, 22px);
+        }
+
+        .home-contentDash {
+            width: 100%;
+        }
+
+        .home-content {
+            padding: 14px 12px 28px;
+            width: 100%;
+        }
+
+        .home-scheduleGrid {
+            margin-top: 1.5rem;
+            gap: 16px;
+        }
+
+        .home-actions {
+            flex-wrap: wrap;
+        }
+
+        .home-contact,
+        .home-book {
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+
+        .appts-tabs {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-wrap: nowrap;
+            gap: 8px;
+            padding-bottom: 4px;
+        }
+
+        .appts-tab {
+            flex-shrink: 0;
+            touch-action: manipulation;
+        }
+
+        .appts-wideCancel,
+        .appts-wideChange,
+        .appts-wideRemove,
+        .appts-wideBookAgain {
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+
+        .features-row {
+            flex-direction: column;
+        }
+
+        /* Reduce iOS zoom on focus */
+        .login-input,
+        .login-input[type='date'],
+        .login-input[type='email'],
+        .login-input[type='password'],
+        .login-input[type='tel'],
+        .login-input[type='text'],
+        select.login-input {
+            font-size: 16px;
+        }
+
+        .register-primary,
+        .login-primary,
+        .upload-save {
+            min-height: 48px;
+            touch-action: manipulation;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .home-commonGrid {
+            grid-template-columns: 1fr;
+        }
+
+        .home-categoryRow {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
     /*service section*/
     
     .services-block {
