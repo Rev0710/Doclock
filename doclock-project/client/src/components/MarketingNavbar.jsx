@@ -45,7 +45,7 @@ function Navbar() {
             </a>
           </li>
           <li>
-            <a href="/#landing-blog" onClick={() => setMenuOpen(false)}>
+            <a href="/#landing-about" onClick={() => setMenuOpen(false)}>
               Our Blog
             </a>
           </li>
@@ -55,7 +55,7 @@ function Navbar() {
             </a>
           </li>
           <li>
-            <a href="/#landing-contact" onClick={() => setMenuOpen(false)}>
+            <a href="/#landing-footer" onClick={() => setMenuOpen(false)}>
               Contact Us
             </a>
           </li>

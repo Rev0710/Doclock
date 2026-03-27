@@ -171,8 +171,6 @@ const Landing = () => {
         </div>
       </section>
 
-      <div id="landing-blog" className="landing-footer-anchor" aria-hidden="true" />
-
       {/* CTA */}
       <section className="cta" id="landing-contact">
         <h2>Ready to take the next step in your health journey?</h2>

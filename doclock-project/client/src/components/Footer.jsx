@@ -55,7 +55,7 @@ export default function Footer() {
   const landingTop = (e) => goLandingHome(navigate, location.pathname, e)
 
   return (
-    <footer className="doclock-site-footer">
+    <footer id="landing-footer" className="doclock-site-footer">
       <div className="doclock-site-footer-inner">
         <div className="doclock-site-footer-grid">
           <div className="doclock-site-footer-brand">
@@ -110,10 +110,10 @@ export default function Footer() {
                 <a href="/#landing-gallery">Gallery</a>
               </li>
               <li>
-                <a href="/#landing-blog">Our Blogs</a>
+                <a href="/#landing-about">Our Blogs</a>
               </li>
               <li>
-                <a href="/#landing-contact">Contact Us</a>
+                <a href="/#landing-footer">Contact Us</a>
               </li>
             </ul>
           </div>
