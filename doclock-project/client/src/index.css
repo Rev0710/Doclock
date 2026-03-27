@@ -2800,6 +2800,18 @@
         .register-frame .login-right {
             padding: 28px 18px 36px;
         }
+
+        .login-form.register-form {
+            gap: 8px;
+        }
+
+        .register-form .login-label > span {
+            margin-bottom: 4px;
+        }
+
+        .register-frame .login-header {
+            margin-bottom: 12px;
+        }
     }
 
     /* ── UPLOAD PHOTO ── */
