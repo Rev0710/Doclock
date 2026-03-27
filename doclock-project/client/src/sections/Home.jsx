@@ -6,12 +6,7 @@ import { useAppointments } from '../hooks/useAppointments.js';
 import { usersAPI } from '../services/api.js';
 import { formatVisitDate, specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
 import { COMMON_SERVICES, doctorsMatchingService } from '../utils/serviceDoctorMatch.js';
-
-const NavIcon = ({ children }) => (
-  <span className="home-navIcon" aria-hidden="true">
-    {children}
-  </span>
-);
+import DashboardNav from '../components/DashboardNav.jsx';
 
 export default function Home() {
   const navigate = useNavigate();
