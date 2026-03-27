@@ -5,6 +5,7 @@ import stethoscope from '../assets/stethoscope-icon.png';
 import crossIcon from '../assets/cross-png.png';
 import aboutImg from '../assets/aboutImg.png';
 import MarketingNavbar from '../components/MarketingNavbar.jsx';
+import Footer from '../components/Footer.jsx';
 
 const Landing = () => {
   // 1. Move State to the top
@@ -103,13 +104,13 @@ const Landing = () => {
           </div>
         </div>
 
-        <div className="about-image">
+        <div className="about-image" id="landing-gallery">
           <img src={aboutImg} alt="Medical team" />
         </div>
       </section>
 
       {/* SERVICES - Logic cleaned up here */}
-      <section className="services">
+      <section className="services" id="landing-services">
         <div className="services-block">
           <p className="eyebrow">Our Services</p>
           <h2>Your Complete Medical Guide</h2>
@@ -159,8 +160,10 @@ const Landing = () => {
         </div>
       </section>
 
+      <div id="landing-blog" className="landing-footer-anchor" aria-hidden="true" />
+
       {/* CTA */}
-      <section className="cta">
+      <section className="cta" id="landing-contact">
         <h2>Ready to take the next step in your health journey?</h2>
         <div className="cta-btns">
           <button className="btn-outline">Learn More</button>
@@ -168,11 +171,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer>
-        <div className="logo">Doclock</div>
-        <span>© 2025 Doclock. All rights reserved.</span>
-      </footer>
+      <Footer />
     </div>
   );
 };

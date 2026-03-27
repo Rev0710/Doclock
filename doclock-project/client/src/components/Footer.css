@@ -1,155 +1,198 @@
-/* ═══════════════════════════════════
-   Footer.css
-═══════════════════════════════════ */
+/* Doclock marketing footer — bright blue, four columns */
 
-.footer {
-  background: var(--slate-800);
-  color: var(--slate-300);
-  margin-top: auto;
+footer.doclock-site-footer {
+  background: linear-gradient(180deg, #1d7ed8 0%, #156cc9 50%, #0f5bb3 100%);
+  color: #fff;
+  margin-top: 0;
+  padding: 0;
+  display: block;
+  flex-direction: unset;
+  align-items: unset;
+  justify-content: unset;
+  flex-wrap: unset;
+  gap: 0;
+  font-size: inherit;
 }
 
-.footer-inner {
-  max-width: 1280px;
+.doclock-site-footer-inner {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 64px 32px 0;
+  padding: 56px 24px 28px;
+  box-sizing: border-box;
 }
 
-/* ── Grid ── */
-.footer-grid {
+.doclock-site-footer-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.4fr;
-  gap: 48px;
-  padding-bottom: 48px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  grid-template-columns: 1.35fr 1fr 0.85fr 0.75fr;
+  gap: 40px 32px;
+  align-items: start;
 }
 
-/* ── Brand column ── */
-.footer-brand { display: flex; flex-direction: column; gap: 16px; }
+.doclock-site-footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-right: 12px;
+}
 
-.footer-logo {
-  font-family: var(--font-display);
-  font-size: 24px;
+.doclock-site-footer-logo-link {
+  display: inline-block;
+  line-height: 0;
+}
+
+.doclock-site-footer-logo-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.doclock-site-footer-about {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 400;
+  max-width: 340px;
+}
+
+.doclock-site-footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.doclock-site-footer-heading {
+  margin: 0;
+  font-size: 17px;
   font-weight: 800;
   color: #fff;
-  letter-spacing: -0.5px;
-  line-height: 1;
-}
-.footer-logo span { color: var(--blue-400); }
-
-.footer-tagline {
-  font-size: 13px;
-  color: var(--slate-400);
-  line-height: 1.7;
-  max-width: 300px;
+  letter-spacing: -0.02em;
 }
 
-.footer-social {
+.doclock-site-footer-contact {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  gap: 8px;
-  margin-top: 4px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.social-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.doclock-site-footer-contact li {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--slate-400);
-  transition: var(--transition);
-}
-.social-icon:hover {
-  background: var(--blue-600);
-  border-color: var(--blue-600);
-  color: white;
-  transform: translateY(-2px);
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-/* ── Link columns ── */
-.footer-col { display: flex; flex-direction: column; gap: 14px; }
+.doclock-site-footer-contact a {
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
 
-.footer-col-title {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.doclock-site-footer-contact a:hover {
+  color: #fff;
+  text-decoration: underline;
+  opacity: 1;
+}
+
+.doclock-site-footer-icon-wrap {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  display: grid;
+  place-items: center;
   color: #fff;
 }
 
-.footer-links {
+.doclock-site-footer-links {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.footer-links a {
-  font-size: 13px;
-  color: var(--slate-400);
-  transition: var(--transition);
-  line-height: 1.5;
-}
-.footer-links a:hover { color: var(--blue-400); padding-left: 4px; }
-
-/* ── Contact list ── */
-.footer-contact-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.footer-contact-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--slate-400);
-  line-height: 1.5;
-}
-
-.contact-icon {
+.doclock-site-footer-links a {
   font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 1px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  transition: color 0.15s ease, padding-left 0.15s ease;
 }
 
-/* ── Bottom bar ── */
-.footer-bottom {
-  padding: 20px 0 28px;
+.doclock-site-footer-links a:hover {
+  color: #fff;
+  padding-left: 4px;
+}
+
+.doclock-site-footer-social {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
-.footer-copy { font-size: 13px; color: var(--slate-500); }
-
-.footer-legal {
-  display: flex;
-  gap: 20px;
+.doclock-site-footer-social-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  transition: background 0.2s ease, transform 0.15s ease;
 }
 
-.footer-legal a {
-  font-size: 12px;
-  color: var(--slate-500);
-  transition: var(--transition);
+.doclock-site-footer-social-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  color: #fff;
 }
-.footer-legal a:hover { color: var(--blue-400); }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-  .footer-brand { grid-column: 1 / -1; }
+.doclock-site-footer-bottom {
+  margin-top: 48px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.doclock-site-footer-copy {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .doclock-site-footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .doclock-site-footer-brand {
+    grid-column: 1 / -1;
+    padding-right: 0;
+    max-width: 100%;
+  }
+
+  .doclock-site-footer-about {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 560px) {
-  .footer-inner  { padding: 40px 20px 0; }
-  .footer-grid   { grid-template-columns: 1fr; gap: 28px; }
-  .footer-bottom { flex-direction: column; align-items: flex-start; }
-  .footer-legal  { gap: 14px; }
+  .doclock-site-footer-inner {
+    padding: 40px 18px 24px;
+  }
+
+  .doclock-site-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
 }

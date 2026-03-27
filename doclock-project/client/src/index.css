@@ -512,6 +512,20 @@
     .btn-outline:hover {
         background: var(--blue-light);
     }
+    #landing-about,
+    #landing-services,
+    #landing-gallery,
+    #landing-blog,
+    #landing-contact {
+        scroll-margin-top: 88px;
+    }
+
+    .landing-footer-anchor {
+        height: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
     /* ── FOOTER ── */
     
     footer {
