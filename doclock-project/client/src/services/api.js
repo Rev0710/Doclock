@@ -3,7 +3,8 @@ import axios from 'axios'
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://doclock-v63v.vercel.app/api',
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  // Serverless + MongoDB cold start can exceed 15s; align with Vercel maxDuration where possible.
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT_MS) || 45000,
 })
 
 /* ── Request Interceptor: attach JWT ── */
