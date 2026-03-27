@@ -1,16 +1,21 @@
 const User = require("../models/user");
 const Appointment = require("../models/appointmentModel");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: String(id) }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || "7d",
   });
 };
 
+function userObjectId(req) {
+  return new mongoose.Types.ObjectId(String(req.user.id));
+}
+
 const registerUser = async (req, res) => {
   try {
-    const { name, email, phone, password, role } = req.body;
+    const { name, email, phone, password, role, specialty, availabilityDays, availabilityHours } = req.body;
     if (!name || !email || !phone || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -18,7 +23,19 @@ const registerUser = async (req, res) => {
     if (emailExists) {
       return res.status(400).json({ message: "An account with this email already exists" });
     }
-    const user = await User.create({ name, email, phone, password, role });
+    const payload = {
+      name,
+      email: String(email).trim().toLowerCase(),
+      phone,
+      password,
+      role,
+    };
+    if (role === "doctor") {
+      payload.specialty = specialty || "";
+      payload.availabilityDays = availabilityDays || "Mon – Fri";
+      payload.availabilityHours = availabilityHours || "9:00 – 17:00";
+    }
+    const user = await User.create(payload);
     const token = generateToken(user._id);
     res.status(201).json({ success: true, message: "Account created", token, user });
   } catch (error) {
@@ -29,7 +46,10 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
@@ -52,11 +72,14 @@ const getMe = async (req, res) => {
 const bookAppointment = async (req, res) => {
   try {
     const { date, time, service } = req.body;
+    if (!date || !time || !service) {
+      return res.status(400).json({ message: 'Date, time, and service are required' });
+    }
     const appointment = await Appointment.create({
-      user: req.user.id,
-      date,
-      time,
-      service,
+      user: userObjectId(req),
+      date: String(date),
+      time: String(time),
+      service: String(service),
     });
     res.status(201).json({ success: true, appointment });
   } catch (error) {
@@ -66,17 +89,19 @@ const bookAppointment = async (req, res) => {
 
 const getMyAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({ user: req.user.id });
+    const appointments = await Appointment.find({ user: userObjectId(req) })
+      .sort({ date: 1, createdAt: 1 })
+      .lean();
     res.status(200).json({ success: true, appointments });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching appointments" });
+    res.status(500).json({ message: 'Error fetching appointments' });
   }
 };
 
 const updateAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
+      { _id: req.params.id, user: userObjectId(req) },
       req.body,
       { new: true, runValidators: true }
     );
@@ -91,7 +116,7 @@ const deleteAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findOneAndDelete({
       _id: req.params.id,
-      user: req.user.id
+      user: userObjectId(req),
     });
     if (!appointment) return res.status(404).json({ message: "Not found" });
     res.status(200).json({ success: true, message: "Appointment deleted" });

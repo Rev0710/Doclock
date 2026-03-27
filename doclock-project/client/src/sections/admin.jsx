@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import docLogo from '../assets/doc2.png';
 import { adminApi, getAuthUser, getAvatarDataUrl } from '../lib/api';
+import ProfileTab from '../components/ProfileTab.jsx';
 
 const NavIcon = ({ children }) => (
   <span className="home-navIcon" aria-hidden="true">
@@ -1919,6 +1920,21 @@ export default function Admin() {
                     ))}
                   </div>
 
+                  {profileTab === 'profile' ? (
+                    <div className="admin-profile-edit">
+                      <ProfileTab />
+                    </div>
+                  ) : null}
+
+                  {profileTab === 'password' ? (
+                    <p style={{ color: 'var(--muted)', marginTop: 16 }}>Change password from My Profile, or use the form below when available.</p>
+                  ) : null}
+
+                  {profileTab === 'notification' ? (
+                    <p style={{ color: 'var(--muted)', marginTop: 16 }}>Notification preferences coming soon.</p>
+                  ) : null}
+
+                  {profileTab === 'reviews' ? (
                   <div className="reviews-list">
                     <div className="review-card">
                       <div className="review-header">
@@ -2036,6 +2052,7 @@ export default function Admin() {
                       </p>
                     </div>
                   </div>
+                  ) : null}
                 </div>
               </div>
             </div>

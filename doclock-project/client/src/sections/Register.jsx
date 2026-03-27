@@ -11,8 +11,7 @@ export default function Register() {
   const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('patient');
@@ -55,14 +54,14 @@ export default function Register() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 setError('');
+                if (!name.trim()) return setError('Please enter your name');
                 if (password.length < 8) return setError('Password must be at least 8 characters');
                 if (password !== confirm) return setError('Passwords do not match');
                 if (role === 'doctor' && !specialty.trim()) return setError('Please select doctor type');
                 setLoading(true);
                 try {
-                  const name = `${firstName} ${lastName}`.trim();
-                  await register({ name, email, phone, password, role, specialty: specialty.trim() });
-                  navigate(role === 'doctor' || role === 'admin' ? '/admin' : '/upload-photo');
+                  await register({ name: name.trim(), email, phone, password, role, specialty: specialty.trim() });
+                  navigate(role === 'admin' ? '/admin' : '/upload-photo');
                 } catch (err) {
                   setError(err?.response?.data?.message || err?.message || 'Registration failed');
                 } finally {
@@ -70,30 +69,17 @@ export default function Register() {
                 }
               }}
             >
-              <div className="register-grid2">
-                <label className="login-label">
-                  <span>First Name</span>
-                  <input
-                    className="login-input"
-                    type="text"
-                    placeholder="John"
-                    autoComplete="given-name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                </label>
-                <label className="login-label">
-                  <span>Last Name</span>
-                  <input
-                    className="login-input"
-                    type="text"
-                    placeholder="Dela Cruz"
-                    autoComplete="family-name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </label>
-              </div>
+              <label className="login-label">
+                <span>Full name</span>
+                <input
+                  className="login-input"
+                  type="text"
+                  placeholder="John Dela Cruz"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
 
               <label className="login-label">
                 <span>Email Address</span>

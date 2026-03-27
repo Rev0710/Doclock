@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import heroImg from '../assets/hero_img.png';
 import { apiFetch, getAuthUser, getAvatarDataUrl } from '../lib/api';
+import { useAppointments } from '../hooks/useAppointments.js';
 
 const NavIcon = ({ children }) => (
   <span className="home-navIcon" aria-hidden="true">
@@ -11,6 +12,13 @@ const NavIcon = ({ children }) => (
 
 export default function SerApntmt() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const picked = location.state || {};
+  const doctorName = picked.doctorName || 'Dr. James Tan';
+  const specialty = picked.specialty || 'Dermatologist';
+  const fee = 650;
+
+  const { loadAppointments } = useAppointments();
   const avatar = getAvatarDataUrl();
   const dateInputRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState('');
@@ -20,9 +28,6 @@ export default function SerApntmt() {
   const [patientAge, setPatientAge] = useState('');
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState('');
-  const doctorName = 'Dr. James Tan';
-  const specialty = 'Dermatologist';
-  const fee = 650;
 
   useEffect(() => {
     document.title = 'Doclock | Set Appointment';
@@ -57,6 +62,8 @@ export default function SerApntmt() {
           service: `${specialty} — ${doctorName} — ${who}${patientAge ? ` (${patientAge})` : ''}`,
         },
       });
+
+      await loadAppointments();
 
       navigate('/booked', {
         state: {

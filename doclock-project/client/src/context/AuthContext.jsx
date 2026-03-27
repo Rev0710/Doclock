@@ -41,8 +41,20 @@ export function AuthProvider({ children }) {
     initAuth()
   }, [])
 
+  useEffect(() => {
+    const onAuthLost = () => {
+      setToken(null)
+      setUser(null)
+    }
+    window.addEventListener('doclock:auth-lost', onAuthLost)
+    return () => window.removeEventListener('doclock:auth-lost', onAuthLost)
+  }, [])
+
   const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password })
+    const { data } = await api.post('/auth/login', {
+      email: String(email || '').trim().toLowerCase(),
+      password,
+    })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
     setToken(data.token)
@@ -51,7 +63,8 @@ export function AuthProvider({ children }) {
   }
 
   const register = async (payload) => {
-    const { data } = await api.post('/auth/register', payload)
+    const body = { ...payload, email: String(payload?.email || '').trim().toLowerCase() }
+    const { data } = await api.post('/auth/register', body)
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
     setToken(data.token)

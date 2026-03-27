@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi, getAuthUser, getAvatarDataUrl, setAuthUser } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
+import { useAppointments } from '../hooks/useAppointments.js';
+import { formatVisitDate, specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
 
 const NavIcon = ({ children }) => (
   <span className="home-navIcon" aria-hidden="true">
@@ -12,12 +14,38 @@ const NavIcon = ({ children }) => (
 export default function Home() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { appointments, loading: visitsLoading, loadError: visitsLoadError, loadAppointments } = useAppointments();
   const [name, setName] = useState(() => user?.name || getAuthUser()?.name || 'user');
   const [avatar, setAvatar] = useState(() => getAvatarDataUrl() || '');
+
+  const upcomingVisits = useMemo(() => {
+    const list = Array.isArray(appointments) ? appointments : [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return list
+      .filter((a) => (a.status || 'pending') !== 'cancelled')
+      .filter((a) => {
+        if (!a?.date) return true;
+        const d = new Date(`${String(a.date).slice(0, 10)}T12:00:00`);
+        if (Number.isNaN(d.getTime())) return true;
+        d.setHours(0, 0, 0, 0);
+        return d >= today;
+      })
+      .sort((a, b) => {
+        const da = String(a.date || '');
+        const db = String(b.date || '');
+        if (da !== db) return da.localeCompare(db);
+        return String(a.time || '').localeCompare(String(b.time || ''));
+      });
+  }, [appointments]);
 
   useEffect(() => {
     document.title = 'Doclock | Home';
   }, []);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [loadAppointments]);
 
   useEffect(() => {
     let alive = true;
@@ -155,77 +183,74 @@ export default function Home() {
               <h2 className="home-h2 home-h2Visits">Upcoming Visits</h2>
 
               <div className="home-cards">
-                <article className="home-visitCard">
-                  <div className="home-visitLeft">
-                    <div className="home-doc">
-                      <div className="home-docAvatar" aria-hidden="true" />
-                      <div>
-                        <div className="home-docName">Dr. pikachu</div>
-                        <div className="home-docRole">Dentist</div>
-                        <div className="home-docActions">
-                          <button type="button" className="home-docActionBtn" aria-label="Call">
-                            <svg viewBox="0 0 24 24"><path d="M6.6 2.9 9 5.3c.8.8.8 2 0 2.8L7.6 9.5c1.2 2.3 3.1 4.2 5.4 5.4l1.4-1.4c.8-.8 2-.8 2.8 0l2.4 2.4c.9.9.9 2.3 0 3.2l-1.6 1.6c-.7.7-1.7 1-2.7.9-3.5-.5-6.8-2.4-9.4-5.1C3.4 13.9 1.5 10.6 1 7.1c-.1-1 .2-2 .9-2.7L3.4 2.9c.9-.9 2.3-.9 3.2 0Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
-                          </button>
-                          <button type="button" className="home-docActionBtn" aria-label="Message">
-                            <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
-                          </button>
+                {visitsLoadError ? (
+                  <div className="home-noVisitsWrap">
+                    <p className="home-noVisits" style={{ color: '#b91c1c', margin: '0 0 12px' }} role="alert">
+                      {visitsLoadError}
+                    </p>
+                    <button type="button" className="home-book" onClick={() => loadAppointments()}>
+                      Try again
+                    </button>
+                  </div>
+                ) : visitsLoading ? (
+                  <p className="home-noVisits" style={{ color: '#1e3a8a', margin: 0 }}>
+                    Loading visits…
+                  </p>
+                ) : upcomingVisits.length === 0 ? (
+                  <div className="home-noVisitsWrap">
+                    <p className="home-noVisits" style={{ color: '#1e3a8a', margin: '0 0 12px' }}>
+                      {appointments.length > 0
+                        ? 'No upcoming visits from today onward. Past bookings appear under Appointments → Completed.'
+                        : 'No upcoming visits yet. Book an appointment and it will show up here.'}
+                    </p>
+                    <button type="button" className="home-book" onClick={() => navigate('/set-appointment')}>
+                      Book appointment
+                    </button>
+                  </div>
+                ) : (
+                  upcomingVisits.map((appt, idx) => {
+                    const { specialty, doctor } = specialtyAndDoctorFromService(appt.service);
+                    const rawId = appt._id ?? appt.id;
+                    const id = rawId != null ? String(rawId) : `${appt.date}-${appt.time}-${idx}`;
+                    return (
+                      <article key={id} className="home-visitCard">
+                        <div className="home-visitLeft">
+                          <div className="home-doc">
+                            <div className={idx % 2 ? 'home-docAvatar alt' : 'home-docAvatar'} aria-hidden="true" />
+                            <div>
+                              <div className="home-docName">{doctor}</div>
+                              <div className="home-docRole">{specialty}</div>
+                              <div className="home-docActions">
+                                <button type="button" className="home-docActionBtn" aria-label="Call">
+                                  <svg viewBox="0 0 24 24"><path d="M6.6 2.9 9 5.3c.8.8.8 2 0 2.8L7.6 9.5c1.2 2.3 3.1 4.2 5.4 5.4l1.4-1.4c.8-.8 2-.8 2.8 0l2.4 2.4c.9.9.9 2.3 0 3.2l-1.6 1.6c-.7.7-1.7 1-2.7.9-3.5-.5-6.8-2.4-9.4-5.1C3.4 13.9 1.5 10.6 1 7.1c-.1-1 .2-2 .9-2.7L3.4 2.9c.9-.9 2.3-.9 3.2 0Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
+                                </button>
+                                <button type="button" className="home-docActionBtn" aria-label="Message">
+                                  <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="home-pillRow">
-                    <div className="home-pill">
-                      <div className="home-pillLabel">
-                        {calendarMini}
-                        Date
-                      </div>
-                      <div className="home-pillValue">3 March, 2026</div>
-                    </div>
-                    <div className="home-pill">
-                      <div className="home-pillLabel">
-                        {clockMini}
-                        Time
-                      </div>
-                      <div className="home-pillValue">9:30 AM</div>
-                    </div>
-                  </div>
-                </article>
-
-                <article className="home-visitCard">
-                  <div className="home-visitLeft">
-                    <div className="home-doc">
-                      <div className="home-docAvatar alt" aria-hidden="true" />
-                      <div>
-                        <div className="home-docName">Dr Alfonso</div>
-                        <div className="home-docRole">Doctor</div>
-                        <div className="home-docActions">
-                          <button type="button" className="home-docActionBtn" aria-label="Call">
-                            <svg viewBox="0 0 24 24"><path d="M6.6 2.9 9 5.3c.8.8.8 2 0 2.8L7.6 9.5c1.2 2.3 3.1 4.2 5.4 5.4l1.4-1.4c.8-.8 2-.8 2.8 0l2.4 2.4c.9.9.9 2.3 0 3.2l-1.6 1.6c-.7.7-1.7 1-2.7.9-3.5-.5-6.8-2.4-9.4-5.1C3.4 13.9 1.5 10.6 1 7.1c-.1-1 .2-2 .9-2.7L3.4 2.9c.9-.9 2.3-.9 3.2 0Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
-                          </button>
-                          <button type="button" className="home-docActionBtn" aria-label="Message">
-                            <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
-                          </button>
+                        <div className="home-pillRow">
+                          <div className="home-pill">
+                            <div className="home-pillLabel">
+                              {calendarMini}
+                              Date
+                            </div>
+                            <div className="home-pillValue">{formatVisitDate(appt.date)}</div>
+                          </div>
+                          <div className="home-pill">
+                            <div className="home-pillLabel">
+                              {clockMini}
+                              Time
+                            </div>
+                            <div className="home-pillValue">{appt.time || '—'}</div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="home-pillRow">
-                    <div className="home-pill">
-                      <div className="home-pillLabel">
-                        {calendarMini}
-                        Date
-                      </div>
-                      <div className="home-pillValue">10 March, 2026</div>
-                    </div>
-                    <div className="home-pill">
-                      <div className="home-pillLabel">
-                        {clockMini}
-                        Time
-                      </div>
-                      <div className="home-pillValue">8:30 AM</div>
-                    </div>
-                  </div>
-                </article>
+                      </article>
+                    );
+                  })
+                )}
               </div>
             </section>
 
@@ -235,7 +260,7 @@ export default function Home() {
                   <div className="home-scheduleHeader">
                     <h2 className="home-h2">Schedule Your Visits</h2>
                     <div className="home-scheduleDesc">
-                      descriptions descriptions descriptions descriptions descriptions
+                      Plan follow-ups and new visits in one place—pick a doctor, choose a time, and keep every appointment on your radar.
                     </div>
                   </div>
 
@@ -261,7 +286,9 @@ export default function Home() {
                         </div>
                       </div>
                       <span className="feat-label">24/7 Access</span>
-                      <p className="feat-desc">descriptions descriptions descriptions</p>
+                      <p className="feat-desc">
+                        Sign in anytime to view visits, messages, and updates—your care timeline stays available day or night.
+                      </p>
                       <div className="feat-arrow" aria-hidden="true">+</div>
                     </div>
 
@@ -275,7 +302,9 @@ export default function Home() {
                         </div>
                       </div>
                       <span className="feat-label">Easy Booking</span>
-                      <p className="feat-desc-hover">descriptions descriptions descriptions</p>
+                      <p className="feat-desc-hover">
+                        Book a slot in minutes: choose a doctor, date, and time without phone tag or long forms.
+                      </p>
                     </div>
 
                     <div className="feat-card">
@@ -288,7 +317,9 @@ export default function Home() {
                         </div>
                       </div>
                       <span className="feat-label">Near You</span>
-                      <p className="feat-desc-hover">descriptions descriptions descriptions</p>
+                      <p className="feat-desc-hover">
+                        Explore available providers and specialties so you can find the right care close to home.
+                      </p>
                     </div>
                   </div>
                 </div>

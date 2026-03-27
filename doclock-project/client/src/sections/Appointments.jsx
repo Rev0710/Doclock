@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarDataUrl } from '../lib/api';
+import { useAuth } from '../hooks/useAuth.js';
+import { useAppointments } from '../hooks/useAppointments.js';
+import { formatVisitDate, specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
 
 const NavIcon = ({ children }) => (
   <span className="home-navIcon" aria-hidden="true">
@@ -10,19 +13,51 @@ const NavIcon = ({ children }) => (
 
 export default function Appointments() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { appointments, loading, loadError, loadAppointments, updateAppointment, removeAppointment } = useAppointments();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('upcoming'); // upcoming | completed | cancelled
+  const [actionError, setActionError] = useState('');
   const avatar = getAvatarDataUrl();
 
   useEffect(() => {
     document.title = 'Doclock | Appointments';
   }, []);
 
-  const [visits, setVisits] = useState(() => [
-    { id: 'v1', status: 'upcoming', name: 'Dr. pikachu', specialty: 'Dentist', date: '3 March, 2026', time: '9:30 AM' },
-    { id: 'v2', status: 'completed', name: 'Dr. Istong', specialty: 'Dentist', date: 'December 12, 2025', time: '8:30 AM' },
-    { id: 'v3', status: 'cancelled', name: 'Dr. James Tan', specialty: 'Dermatologist', date: 'March 27, 2026', time: '8:00 AM' },
-  ]);
+  useEffect(() => {
+    loadAppointments();
+  }, [loadAppointments]);
+
+  const visits = useMemo(() => {
+    const list = Array.isArray(appointments) ? appointments : [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return list.map((appt) => {
+      const { specialty, doctor } = specialtyAndDoctorFromService(appt.service);
+      const rawId = appt._id ?? appt.id;
+      const id = rawId != null ? String(rawId) : '';
+      const dateStr = appt.date ? String(appt.date).slice(0, 10) : '';
+      const dateVal = dateStr ? new Date(`${dateStr}T12:00:00`) : null;
+      const validDate = dateVal && !Number.isNaN(dateVal.getTime());
+      const dayStart = validDate ? new Date(dateVal) : null;
+      if (dayStart) dayStart.setHours(0, 0, 0, 0);
+
+      const st = String(appt.status || 'pending').toLowerCase();
+      let uiStatus = 'upcoming';
+      if (st === 'cancelled') uiStatus = 'cancelled';
+      else if (validDate && dayStart < today) uiStatus = 'completed';
+      else uiStatus = 'upcoming';
+
+      return {
+        id,
+        status: uiStatus,
+        name: doctor,
+        specialty,
+        date: formatVisitDate(appt.date),
+        time: appt.time || '—',
+      };
+    });
+  }, [appointments]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -31,7 +66,17 @@ export default function Appointments() {
     return base.filter((v) => `${v.name} ${v.specialty} ${v.date} ${v.time}`.toLowerCase().includes(q));
   }, [query, tab, visits]);
 
-  const removeVisit = (id) => setVisits((prev) => prev.filter((v) => v.id !== id));
+  const handleCancel = async (id) => {
+    setActionError('');
+    const res = await updateAppointment(id, { status: 'cancelled' });
+    if (!res.success) setActionError('Could not cancel');
+  };
+
+  const handleRemove = async (id) => {
+    setActionError('');
+    const res = await removeAppointment(id);
+    if (!res.success) setActionError('Could not remove appointment');
+  };
 
   const calendarMini = (
     <svg viewBox="0 0 24 24" className="home-pillSvg">
@@ -109,10 +154,18 @@ export default function Appointments() {
     wideCardBase(
       v,
       <>
-        <button type="button" className="appts-wideCancel" onClick={() => setVisits((p) => p.map((x) => (x.id === v.id ? { ...x, status: 'cancelled' } : x)))}>
+        <button type="button" className="appts-wideCancel" onClick={() => handleCancel(v.id)}>
           Cancel
         </button>
-        <button type="button" className="appts-wideChange" onClick={() => navigate('/set-appointment')}>
+        <button
+          type="button"
+          className="appts-wideChange"
+          onClick={() =>
+            navigate('/set-appointment', {
+              state: { doctorName: v.name, specialty: v.specialty === '—' ? 'General' : v.specialty },
+            })
+          }
+        >
           Change Schedule
         </button>
       </>,
@@ -122,7 +175,7 @@ export default function Appointments() {
     wideCardBase(
       v,
       <>
-        <button type="button" className="appts-wideRemove" onClick={() => removeVisit(v.id)}>
+        <button type="button" className="appts-wideRemove" onClick={() => handleRemove(v.id)}>
           Remove
         </button>
         <button type="button" className="appts-wideBookAgain" onClick={() => navigate('/available')}>
@@ -196,7 +249,14 @@ export default function Appointments() {
             </NavIcon>
             Available Doctors
           </button>
-          <button type="button" className="home-navItem home-navItemLogout" onClick={() => navigate('/login')}>
+          <button
+            type="button"
+            className="home-navItem home-navItemLogout"
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+          >
             <NavIcon>
               <svg viewBox="0 0 24 24">
                 <path
@@ -282,8 +342,33 @@ export default function Appointments() {
                 </button>
               </div>
 
+              {loadError ? (
+                <div style={{ marginBottom: 12 }}>
+                  <p style={{ color: '#b91c1c' }} role="alert">
+                    {loadError}
+                  </p>
+                  <button type="button" className="home-book" style={{ marginTop: 8 }} onClick={() => loadAppointments()}>
+                    Try again
+                  </button>
+                </div>
+              ) : actionError ? (
+                <p style={{ color: '#b91c1c', marginBottom: 12 }} role="alert">
+                  {actionError}
+                </p>
+              ) : null}
+
               <div className="home-cards">
-                {tab === 'upcoming' ? filtered.map((v) => upcomingCard(v)) : filtered.map((v) => completedOrCancelledCard(v))}
+                {loadError ? null : loading ? (
+                  <p style={{ color: '#64748b', textAlign: 'center', marginTop: 24 }}>Loading appointments…</p>
+                ) : filtered.length === 0 ? (
+                  <p style={{ color: '#64748b', textAlign: 'center', marginTop: 24 }}>
+                    No {tab} appointments. Book one from Available Doctors or Set Appointment.
+                  </p>
+                ) : tab === 'upcoming' ? (
+                  filtered.map((v) => upcomingCard(v))
+                ) : (
+                  filtered.map((v) => completedOrCancelledCard(v))
+                )}
               </div>
             </section>
           </main>

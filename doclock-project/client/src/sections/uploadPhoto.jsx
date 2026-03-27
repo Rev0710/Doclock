@@ -91,7 +91,8 @@ export default function UploadPhoto() {
                 setAvatarDataUrl(dataUrl);
               }
 
-              navigate('/home');
+              const role = current?.role;
+              navigate(role === 'doctor' || role === 'admin' ? '/admin' : '/home');
             }}
           >
             <label className="login-label upload-label">

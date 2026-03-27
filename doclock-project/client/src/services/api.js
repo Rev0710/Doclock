@@ -24,6 +24,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
+      window.dispatchEvent(new Event('doclock:auth-lost'))
       const path = window.location.pathname || ''
       const publicPaths = ['/', '/login', '/register']
       if (!publicPaths.includes(path)) {
@@ -42,9 +43,18 @@ export const authAPI = {
   me:       ()       => api.get('/auth/me'),
 }
 
+/* Users */
+export const usersAPI = {
+  getDoctors: () => api.get('/users/doctors'),
+}
+
 /* Appointments */
 export const appointmentsAPI = {
-  list:     ()        => api.get('/auth/my-appointments'),
+  list: () =>
+    api.get('/auth/my-appointments', {
+      params: { _t: Date.now() },
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    }),
   create:   (data)    => api.post('/auth/book-appointment', data),
   update:   (id, data) => api.put(`/auth/update-appointment/${id}`, data),
   delete:   (id)      => api.delete(`/auth/delete-appointment/${id}`),

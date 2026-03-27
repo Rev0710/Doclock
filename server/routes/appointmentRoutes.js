@@ -1,4 +1,5 @@
 const express = require("express")
+const mongoose = require("mongoose")
 const { protect } = require("../middleware/authMiddleware")
 const Appointment = require("../models/appointmentModel") // <-- MAKE SURE THIS PATH IS CORRECT
 
@@ -8,9 +9,12 @@ const router = express.Router()
 // @route GET /api/appointments
 router.get("/", protect, async (req, res) => {
   try {
-    // Finds only appointments where the 'user' field matches the logged-in user's ID
-    const appointments = await Appointment.find({ user: req.user._id }).sort({ date: 1 });
-    res.json(appointments)
+    const appointments = await Appointment.find({
+      user: new mongoose.Types.ObjectId(String(req.user.id)),
+    })
+      .sort({ date: 1, createdAt: 1 })
+      .lean();
+    res.json({ success: true, appointments });
   } catch (error) {
     res.status(500).json({ message: "Error fetching appointments" })
   }
@@ -20,20 +24,24 @@ router.get("/", protect, async (req, res) => {
 // @route POST /api/appointments
 router.post("/", protect, async (req, res) => {
   try {
-    const { doctor, specialty, date, time, avatar, type } = req.body;
+    const { doctor, specialty, date, time, service: bodyService } = req.body;
+    const service =
+      bodyService ||
+      [specialty, doctor].filter(Boolean).join(" — ") ||
+      "Consultation";
+    if (!date || !time) {
+      return res.status(400).json({ message: "Date and time are required" });
+    }
     const appointment = await Appointment.create({
-      user: req.user._id,
-      doctor,
-      specialty,
-      date,
-      time,
-      avatar,
-      type,
-      status: 'pending'
+      user: new mongoose.Types.ObjectId(String(req.user.id)),
+      date: String(date),
+      time: String(time),
+      service: String(service),
+      status: "pending",
     });
-    res.status(201).json(appointment);
+    res.status(201).json({ success: true, appointment });
   } catch (error) {
-    res.status(400).json({ message: "Error creating appointment" });
+    res.status(400).json({ message: error.message || "Error creating appointment" });
   }
 })
 
