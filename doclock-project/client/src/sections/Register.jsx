@@ -6,12 +6,22 @@ import stethoscope from '../assets/stethoscope-icon.png';
 import MarketingNavbar from '../components/MarketingNavbar.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 
+/** Backend requires `name`; derive a display name from the email local-part until the user updates their profile. */
+function provisionalNameFromEmail(emailStr) {
+  const local = String(emailStr || '').trim().split('@')[0] || '';
+  const cleaned = local.replace(/[._-]+/g, ' ').trim();
+  if (!cleaned) return 'User';
+  return cleaned
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + (w.slice(1) || '').toLowerCase())
+    .join(' ');
+}
+
 export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('patient');
@@ -54,13 +64,20 @@ export default function Register() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 setError('');
-                if (!name.trim()) return setError('Please enter your name');
+                if (!email.trim()) return setError('Please enter your email');
                 if (password.length < 8) return setError('Password must be at least 8 characters');
                 if (password !== confirm) return setError('Passwords do not match');
                 if (role === 'doctor' && !specialty.trim()) return setError('Please select doctor type');
                 setLoading(true);
                 try {
-                  await register({ name: name.trim(), email, phone, password, role, specialty: specialty.trim() });
+                  await register({
+                    name: provisionalNameFromEmail(email),
+                    email,
+                    phone,
+                    password,
+                    role,
+                    specialty: specialty.trim(),
+                  });
                   navigate(role === 'admin' ? '/admin' : '/upload-photo');
                 } catch (err) {
                   setError(err?.response?.data?.message || err?.message || 'Registration failed');
@@ -69,17 +86,6 @@ export default function Register() {
                 }
               }}
             >
-              <label className="login-label">
-                <span>Full name</span>
-                <input
-                  className="login-input"
-                  type="text"
-                  autoComplete="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </label>
-
               <label className="login-label">
                 <span>Email Address</span>
                 <input
