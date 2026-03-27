@@ -12,22 +12,30 @@ if (!cached) {
  * Reuses one Mongoose connection across Vercel serverless invocations (warm instances).
  * Avoids process.exit on failure so the API can return 503 instead of crashing the lambda.
  */
+const connectOpts = {
+  maxPoolSize: process.env.VERCEL ? 5 : 10,
+  serverSelectionTimeoutMS: 20000,
+  socketTimeoutMS: 45000,
+};
+
 async function connectDB() {
   if (!MONGO_URI) {
     throw new Error("MONGO_URI is not defined");
   }
 
-  if (cached.conn && mongoose.connection.readyState === 1) {
+  if (mongoose.connection.readyState === 1) {
+    cached.conn = mongoose;
     return cached.conn;
   }
 
+  // Drop stale resolved promise when the socket is gone (0 disconnected, 3 disconnecting).
+  if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) {
+    cached.promise = null;
+    cached.conn = null;
+  }
+
   if (!cached.promise) {
-    const opts = {
-      maxPoolSize: process.env.VERCEL ? 5 : 10,
-      serverSelectionTimeoutMS: 20000,
-      socketTimeoutMS: 45000,
-    };
-    cached.promise = mongoose.connect(MONGO_URI, opts);
+    cached.promise = mongoose.connect(MONGO_URI, connectOpts);
   }
 
   try {
@@ -36,6 +44,12 @@ async function connectDB() {
     cached.promise = null;
     cached.conn = null;
     throw e;
+  }
+
+  if (mongoose.connection.readyState !== 1) {
+    cached.promise = null;
+    cached.conn = null;
+    throw new Error("MongoDB connection not ready after connect()");
   }
 
   return cached.conn;
