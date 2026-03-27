@@ -82,7 +82,7 @@ const Landing = () => {
       </section>
 
       {/* ABOUT */}
-      <section className="about">
+      <section className="about" id="landing-about">
         <div className="about-text">
           <p className="eyebrow">About Us</p>
           <h2>Leading the Way<br />in Healthcare</h2>

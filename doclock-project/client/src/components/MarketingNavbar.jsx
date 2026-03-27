@@ -46,7 +46,7 @@ function Navbar() {
           </li>
           <li>
             <a href="/#landing-about" onClick={() => setMenuOpen(false)}>
-              About us
+              Our Blog
             </a>
           </li>
           <li>
