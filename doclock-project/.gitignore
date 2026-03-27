@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-node_modules/ 
-.env 
-dist/ 
-=======
 # Logs
 logs
 *.log
@@ -17,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Environment
+.env
+.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -27,4 +26,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
->>>>>>> d8a9eea8753a2dc0d635c16cea08e55dc8452a8a
