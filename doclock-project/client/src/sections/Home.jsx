@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi, getAuthUser, getProfileImageSrc, setAuthUser } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
 import { useAppointments } from '../hooks/useAppointments.js';
+import { usersAPI } from '../services/api.js';
 import { formatVisitDate, specialtyAndDoctorFromService } from '../utils/appointmentDisplay.js';
+import { COMMON_SERVICES, doctorsMatchingService } from '../utils/serviceDoctorMatch.js';
 
 const NavIcon = ({ children }) => (
   <span className="home-navIcon" aria-hidden="true">
@@ -70,16 +72,48 @@ export default function Home() {
 
   const profileImg = getProfileImageSrc(getAuthUser() || user);
 
-  const commonServices = [
-    { title: "Children's Vaccinations", icon: '🧸' },
-    { title: 'COVID-19 Consultations', icon: '😷' },
-    { title: 'Medical Certificates', icon: '📄' },
-    { title: 'Vaccination Forms', icon: '🧾' },
-    { title: 'LASIK', icon: '👁️' },
-    { title: 'Cataract Surgery', icon: '🔍' },
-    { title: 'Cortisone Injections', icon: '💉' },
-    { title: 'IUDs & Other Birth Control', icon: '🩹' },
-  ];
+  const [servicePick, setServicePick] = useState(null);
+  const [doctorListCache, setDoctorListCache] = useState(null);
+  const [serviceDoctors, setServiceDoctors] = useState([]);
+  const [serviceModalLoading, setServiceModalLoading] = useState(false);
+  const [serviceModalError, setServiceModalError] = useState('');
+
+  const openServiceModal = useCallback(async (svc) => {
+    setServicePick(svc);
+    setServiceModalError('');
+    setServiceDoctors([]);
+    try {
+      let list = doctorListCache;
+      if (!list) {
+        setServiceModalLoading(true);
+        const { data } = await usersAPI.getDoctors();
+        list = Array.isArray(data?.doctors) ? data.doctors : [];
+        setDoctorListCache(list);
+        setServiceModalLoading(false);
+      }
+      setServiceDoctors(doctorsMatchingService(list, svc.id));
+    } catch (e) {
+      setServiceModalLoading(false);
+      setServiceModalError(e.response?.data?.message || e.message || 'Could not load doctors');
+      setServiceDoctors([]);
+    }
+  }, [doctorListCache]);
+
+  const closeServiceModal = useCallback(() => {
+    setServicePick(null);
+    setServiceModalError('');
+    setServiceDoctors([]);
+    setServiceModalLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!servicePick) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') closeServiceModal();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [servicePick, closeServiceModal]);
 
   const calendarMini = (
     <svg viewBox="0 0 24 24" className="home-pillSvg">
@@ -329,14 +363,20 @@ export default function Home() {
                   <h2 className="home-commonTitle">Common Services</h2>
                   <p className="home-commonSub">Easily access doctors offering these services</p>
                 </div>
-                <button className="home-viewAll" type="button">
+                <button className="home-viewAll" type="button" onClick={() => navigate('/available')}>
                   View All
                 </button>
               </div>
 
               <div className="home-commonGrid">
-                {commonServices.map((svc) => (
-                  <button key={svc.title} className="home-commonCard" type="button">
+                {COMMON_SERVICES.map((svc) => (
+                  <button
+                    key={svc.id}
+                    className="home-commonCard"
+                    type="button"
+                    onClick={() => openServiceModal(svc)}
+                    aria-haspopup="dialog"
+                  >
                     <div className="home-commonIcon" aria-hidden="true">
                       {svc.icon}
                     </div>
@@ -348,6 +388,98 @@ export default function Home() {
           </main>
         </div>
       </div>
+
+      {servicePick ? (
+        <div
+          className="home-serviceModalOverlay"
+          role="presentation"
+          onClick={closeServiceModal}
+          onKeyDown={(e) => e.key === 'Escape' && closeServiceModal()}
+        >
+          <div
+            className="home-serviceModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="home-serviceModal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="home-serviceModalHead">
+              <div className="home-serviceModalTitleRow">
+                <span className="home-serviceModalIcon" aria-hidden="true">
+                  {servicePick.icon}
+                </span>
+                <h2 id="home-serviceModal-title" className="home-serviceModalTitle">
+                  {servicePick.title}
+                </h2>
+              </div>
+              <button type="button" className="home-serviceModalClose" onClick={closeServiceModal} aria-label="Close">
+                ×
+              </button>
+            </div>
+            <p className="home-serviceModalSub">Recommended doctors for this service (by specialty)</p>
+
+            {serviceModalError ? (
+              <p className="home-serviceModalError" role="alert">
+                {serviceModalError}
+              </p>
+            ) : null}
+
+            {serviceModalLoading ? (
+              <p className="home-serviceModalLoading">Loading doctors…</p>
+            ) : !serviceModalError && serviceDoctors.length === 0 ? (
+              <div className="home-serviceModalEmpty">
+                <p>No registered doctors match this service yet. Try another specialty or browse all providers.</p>
+                <button type="button" className="home-book" onClick={() => navigate('/available')}>
+                  Browse all doctors
+                </button>
+              </div>
+            ) : (
+              <ul className="home-serviceModalList">
+                {serviceDoctors.map((d) => (
+                  <li key={d.id} className="home-serviceModalRow">
+                    <div className="home-serviceModalAvatar" aria-hidden="true">
+                      <img
+                        src={getProfileImageSrc({ _id: d.id, name: d.name, avatar: d.avatar })}
+                        alt=""
+                      />
+                    </div>
+                    <div className="home-serviceModalMeta">
+                      <div className="home-serviceModalName">{d.name}</div>
+                      <div className="home-serviceModalTag">{d.tag}</div>
+                      <div className="home-serviceModalCity">{d.city}</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="avail-book home-serviceModalBook"
+                      onClick={() => {
+                        closeServiceModal();
+                        navigate('/set-appointment', {
+                          state: { doctorId: d.id, doctorName: d.name, specialty: d.tag },
+                        });
+                      }}
+                    >
+                      Book
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {!serviceModalLoading && serviceDoctors.length > 0 ? (
+              <button
+                type="button"
+                className="home-serviceModalFooterLink"
+                onClick={() => {
+                  closeServiceModal();
+                  navigate(`/available?service=${encodeURIComponent(servicePick.id)}`);
+                }}
+              >
+                See full list filtered on Available Doctors →
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

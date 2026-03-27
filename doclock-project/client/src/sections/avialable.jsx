@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getAuthUser, getProfileImageSrc } from '../lib/api';
 import { useAuth } from '../hooks/useAuth.js';
 import { usersAPI } from '../services/api.js';
+import { doctorsMatchingService, isKnownServiceId, serviceTitleById } from '../utils/serviceDoctorMatch.js';
 
 const NavIcon = ({ children }) => (
   <span className="home-navIcon" aria-hidden="true">
@@ -12,6 +13,10 @@ const NavIcon = ({ children }) => (
 
 export default function Avialable() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const rawServiceId = searchParams.get('service') || '';
+  const serviceFilterId = isKnownServiceId(rawServiceId) ? rawServiceId : '';
+  const serviceFilterTitle = serviceFilterId ? serviceTitleById(serviceFilterId) : '';
   const { logout, user } = useAuth();
   const [query, setQuery] = useState('');
   const [doctors, setDoctors] = useState([]);
@@ -43,10 +48,15 @@ export default function Avialable() {
   }, [fetchDoctors]);
 
   const filtered = useMemo(() => {
+    let list = doctors;
+    if (serviceFilterId) {
+      const matched = doctorsMatchingService(doctors, serviceFilterId);
+      list = matched.length ? matched : [];
+    }
     const q = query.trim().toLowerCase();
-    if (!q) return doctors;
-    return doctors.filter((d) => `${d.name} ${d.tag} ${d.city} ${d.days}`.toLowerCase().includes(q));
-  }, [doctors, query]);
+    if (!q) return list;
+    return list.filter((d) => `${d.name} ${d.tag} ${d.city} ${d.days}`.toLowerCase().includes(q));
+  }, [doctors, query, serviceFilterId]);
 
   return (
     <div className="home-page home-dashboard" role="region" aria-label="Available doctors">
@@ -177,6 +187,22 @@ export default function Avialable() {
             <div className="avail-shell">
               <h1 className="avail-title">Available Doctor’s</h1>
 
+              {serviceFilterTitle ? (
+                <p className="avail-serviceBanner" role="status">
+                  Showing doctors recommended for <strong>{serviceFilterTitle}</strong>
+                  {filtered.length === 0 && doctors.length > 0 ? (
+                    <span> — no specialty match yet; clear the filter from the URL or pick another service.</span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="avail-clearService"
+                    onClick={() => navigate('/available', { replace: true })}
+                  >
+                    Show all doctors
+                  </button>
+                </p>
+              ) : null}
+
               <div className="avail-searchRow">
                 <span className="avail-searchIcon" aria-hidden="true">
                   <svg viewBox="0 0 24 24">
@@ -209,7 +235,11 @@ export default function Avialable() {
                   <p style={{ textAlign: 'center', color: '#64748b', marginTop: 24 }}>Loading doctors…</p>
                 ) : filtered.length === 0 ? (
                   <p style={{ textAlign: 'center', color: '#64748b', marginTop: 24 }}>
-                    No doctors found yet. When a provider registers as a doctor, they will appear here.
+                    {doctors.length === 0
+                      ? 'No doctors found yet. When a provider registers as a doctor, they will appear here.'
+                      : serviceFilterId
+                        ? 'No doctors match this service filter. Try “Show all doctors” or adjust your search.'
+                        : 'No doctors match your search.'}
                   </p>
                 ) : (
                   filtered.map((d, idx) => (
