@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import logo from '../assets/doc2.png';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { goLandingHome } from '../utils/goLandingHome.js';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const landingTop = (e) => goLandingHome(navigate, location.pathname, e);
 
   return (
     <>
       <nav>
-        <div className="logo">
+        <a href="/" className="logo logo-home-link" onClick={landingTop} aria-label="Doclock home">
           <img src={logo} alt="" />
-        </div>
+        </a>
         <button
           type="button"
           className="nav-burger"
@@ -30,22 +34,28 @@ function Navbar() {
         </button>
         <ul className={`nav-links${menuOpen ? ' nav-links-open' : ''}`}>
           <li>
-            <a href="#" onClick={() => setMenuOpen(false)}>
+            <a
+              href="/"
+              onClick={(e) => {
+                landingTop(e);
+                setMenuOpen(false);
+              }}
+            >
               Home
             </a>
           </li>
           <li>
-            <a href="#" onClick={() => setMenuOpen(false)}>
+            <a href="/#landing-blog" onClick={() => setMenuOpen(false)}>
               Our Blog
             </a>
           </li>
           <li>
-            <a href="#" onClick={() => setMenuOpen(false)}>
+            <a href="/#landing-services" onClick={() => setMenuOpen(false)}>
               Services
             </a>
           </li>
           <li>
-            <a href="#" onClick={() => setMenuOpen(false)}>
+            <a href="/#landing-contact" onClick={() => setMenuOpen(false)}>
               Contact Us
             </a>
           </li>

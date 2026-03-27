@@ -1,6 +1,7 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import logo from '../assets/whitelogo.png'
+import { goLandingHome } from '../utils/goLandingHome.js'
 import './Footer.css'
 
 function IconMail() {
@@ -49,15 +50,18 @@ function IconInstagram() {
 
 export default function Footer() {
   const year = new Date().getFullYear()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const landingTop = (e) => goLandingHome(navigate, location.pathname, e)
 
   return (
     <footer className="doclock-site-footer">
       <div className="doclock-site-footer-inner">
         <div className="doclock-site-footer-grid">
           <div className="doclock-site-footer-brand">
-            <Link to="/" className="doclock-site-footer-logo-link">
+            <a href="/" className="doclock-site-footer-logo-link" onClick={landingTop}>
               <img src={logo} alt="Doclock" className="doclock-site-footer-logo-img" />
-            </Link>
+            </a>
             <p className="doclock-site-footer-about">
               DocClock is the trusted healthcare group focused on quality care, modern medicine and the well-being of
               each patient we serve.
@@ -92,7 +96,9 @@ export default function Footer() {
             <h2 className="doclock-site-footer-heading">Links</h2>
             <ul className="doclock-site-footer-links">
               <li>
-                <Link to="/">Home</Link>
+                <a href="/" onClick={landingTop}>
+                  Home
+                </a>
               </li>
               <li>
                 <a href="/#landing-about">About us</a>
