@@ -5,7 +5,6 @@ import stethoscope from '../assets/stethoscope-icon.png';
 import crossIcon from '../assets/cross-png.png';
 import aboutImg from '../assets/aboutImg.png';
 import MarketingNavbar from '../components/MarketingNavbar.jsx';
-import Footer from '../components/Footer.jsx';
 
 const Landing = () => {
   // 1. Move State to the top
@@ -170,8 +169,6 @@ const Landing = () => {
           <button className="btn-consult">Book a Consultation</button>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

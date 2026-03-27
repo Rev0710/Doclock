@@ -33,6 +33,17 @@
         max-width: 100%;
     }
 
+    .app-shell {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .app-shell-main {
+        flex: 1 0 auto;
+    }
+
     .landing-page {
         width: 100%;
         max-width: 100%;
