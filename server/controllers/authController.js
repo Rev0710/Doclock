@@ -49,8 +49,13 @@ const loginUser = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
-    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
-    if (!user || !(await user.matchPassword(password))) {
+    const normalizedEmail = String(email)
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .trim()
+      .toLowerCase();
+    const pwd = String(password).trim();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user || !(await user.matchPassword(pwd))) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
     const token = generateToken(user._id);

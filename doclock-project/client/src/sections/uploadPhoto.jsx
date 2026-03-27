@@ -6,9 +6,10 @@ import { useAuth } from '../hooks/useAuth.js';
 
 export default function UploadPhoto() {
   const navigate = useNavigate();
-  const { updateProfile } = useAuth();
+  const { updateProfile, user } = useAuth();
   const [fullName, setFullName] = useState('');
   const [file, setFile] = useState(null);
+  const [submitError, setSubmitError] = useState('');
 
   const previewUrl = useMemo(() => {
     if (!file) return '';
@@ -20,9 +21,14 @@ export default function UploadPhoto() {
   }, []);
 
   useEffect(() => {
-    const u = getAuthUser();
-    if (u?.name) setFullName(u.name);
-  }, []);
+    if (!user) return;
+    // Doctors must enter their professional name here (not prefilled from email).
+    if (user.role === 'doctor') {
+      setFullName('');
+      return;
+    }
+    if (user.name) setFullName(user.name);
+  }, [user]);
 
   useEffect(() => {
     return () => {  
@@ -42,7 +48,7 @@ export default function UploadPhoto() {
             </svg>
           </button>
 
-          <h1 className="upload-title">Edit Profile</h1>
+          <h1 className="upload-title">{user?.role === 'doctor' ? 'Complete your profile' : 'Edit Profile'}</h1>
 
           <div className="upload-avatarBlock">
             <label className="upload-avatar" aria-label="Upload photo">
@@ -80,7 +86,15 @@ export default function UploadPhoto() {
             className="upload-form"
             onSubmit={async (e) => {
               e.preventDefault();
-              const current = getAuthUser();
+              setSubmitError('');
+              const current = getAuthUser() || user;
+              const isDoctor = current?.role === 'doctor';
+
+              if (isDoctor && !fullName.trim()) {
+                setSubmitError('Please enter your full name as it should appear to patients.');
+                return;
+              }
+
               const payload = {};
               if (fullName.trim()) payload.name = fullName.trim();
               if (file) {
@@ -92,28 +106,42 @@ export default function UploadPhoto() {
                 });
                 payload.avatar = dataUrl;
               }
+
               if (Object.keys(payload).length > 0) {
                 try {
                   await updateProfile(payload);
-                } catch {
-                  /* still continue to app */
+                } catch (err) {
+                  setSubmitError(err?.response?.data?.message || err?.message || 'Could not save profile');
+                  return;
                 }
               }
+
               const role = current?.role;
               navigate(role === 'doctor' || role === 'admin' ? '/admin' : '/home');
             }}
           >
             <label className="login-label upload-label">
-              <span>Enter your Fullname</span>
+              <span>{user?.role === 'doctor' ? 'Full name (required)' : 'Full name'}</span>
               <input
                 className="login-input upload-input"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your Fullname"
+                placeholder={user?.role === 'doctor' ? 'Dr. Juan Dela Cruz' : 'Your full name'}
                 autoComplete="name"
+                required={user?.role === 'doctor'}
               />
             </label>
+            {user?.role === 'doctor' ? (
+              <p style={{ fontSize: 11, color: '#64748b', marginTop: -4, marginBottom: 8, lineHeight: 1.4 }}>
+                This is shown to patients when they book with you.
+              </p>
+            ) : null}
+            {submitError ? (
+              <div className="login-error" role="alert" style={{ marginBottom: 8 }}>
+                {submitError}
+              </div>
+            ) : null}
 
             <button className="upload-save" type="submit">
               Save

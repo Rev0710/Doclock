@@ -2,6 +2,18 @@ import { useState, useEffect } from 'react'
 import api from '../services/api'
 import { AuthContext } from './authContext.js'
 
+/** Strip invisible chars / stray whitespace — common on mobile autofill & paste. */
+function normalizeLoginEmail(raw) {
+  return String(raw ?? '')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .trim()
+    .toLowerCase()
+}
+
+function normalizeLoginPassword(raw) {
+  return String(raw ?? '').trim()
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -57,8 +69,8 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', {
-      email: String(email || '').trim().toLowerCase(),
-      password,
+      email: normalizeLoginEmail(email),
+      password: normalizeLoginPassword(password),
     })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))

@@ -61,8 +61,13 @@ export default function Login() {
                 <input
                   className="login-input"
                   type="email"
+                  name="email"
+                  inputMode="email"
                   placeholder="Enter Email"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -74,8 +79,12 @@ export default function Login() {
                   <input
                     className="login-input"
                     type={showPassword ? 'text' : 'password'}
+                    name="password"
                     placeholder="Enter Password"
                     autoComplete="current-password"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
