@@ -1,52 +1,58 @@
 const mongoose = require("mongoose");
 
-const MONGO_URI = process.env.MONGO_URI;
-
 let cached = global.mongoose;
 
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
+/** mongoose.connection.readyState */
+const CONNECTED = 1;
+const DISCONNECTED = 0;
+const DISCONNECTING = 3;
+
 /**
- * Reuses one Mongoose connection across Vercel serverless invocations (warm instances).
- * Avoids process.exit on failure so the API can return 503 instead of crashing the lambda.
+ * One shared connection for the process (and warm Vercel lambdas). On failure callers throw;
+ * route middleware can return 503 instead of exiting.
  */
-const connectOpts = {
+const connectOptions = {
   maxPoolSize: process.env.VERCEL ? 5 : 10,
   serverSelectionTimeoutMS: 20000,
   socketTimeoutMS: 45000,
 };
 
 async function connectDB() {
-  if (!MONGO_URI) {
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) {
     throw new Error("MONGO_URI is not defined");
   }
 
-  if (mongoose.connection.readyState === 1) {
+  if (mongoose.connection.readyState === CONNECTED) {
     cached.conn = mongoose;
     return cached.conn;
   }
 
-  // Drop stale resolved promise when the socket is gone (0 disconnected, 3 disconnecting).
-  if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) {
+  const socketGone =
+    mongoose.connection.readyState === DISCONNECTED ||
+    mongoose.connection.readyState === DISCONNECTING;
+  if (socketGone) {
     cached.promise = null;
     cached.conn = null;
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGO_URI, connectOpts);
+    cached.promise = mongoose.connect(mongoUri, connectOptions);
   }
 
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (err) {
     cached.promise = null;
     cached.conn = null;
-    throw e;
+    throw err;
   }
 
-  if (mongoose.connection.readyState !== 1) {
+  if (mongoose.connection.readyState !== CONNECTED) {
     cached.promise = null;
     cached.conn = null;
     throw new Error("MongoDB connection not ready after connect()");

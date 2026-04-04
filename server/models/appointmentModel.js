@@ -35,5 +35,4 @@ const appointmentSchema = new mongoose.Schema(
   }
 );
 
-// Updated export line to prevent OverwriteModelError
 module.exports = mongoose.models.Appointment || mongoose.model("Appointment", appointmentSchema);

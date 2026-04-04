@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-function apiTimeoutMs() {
+function readTimeoutMs() {
   const raw = import.meta.env.VITE_API_TIMEOUT_MS
   if (raw === undefined || raw === '') return 45000
   const n = Number(raw)
@@ -11,22 +11,20 @@ function apiTimeoutMs() {
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://doclock-v63v.vercel.app/api',
   headers: { 'Content-Type': 'application/json' },
-  // Serverless + MongoDB cold start can exceed 15s; 0 = Axios no-timeout.
-  timeout: apiTimeoutMs(),
+  timeout: readTimeoutMs(),
 })
 
-/* ── Request Interceptor: attach JWT ── */
 api.interceptors.request.use(
   (config) => {
-    // FIXED: Changed 'doclock_token' to 'token' to match your AuthContext
-    const token = localStorage.getItem('token') 
-    if (token) config.headers.Authorization = `Bearer ${token}`
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => Promise.reject(error)
 )
 
-/* ── Response Interceptor: handle 401 globally ── */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -44,31 +42,28 @@ api.interceptors.response.use(
   }
 )
 
-/* Auth */
 export const authAPI = {
-  login:    (data)   => api.post('/auth/login', data),
-  register: (data)   => api.post('/auth/register', data),
-  logout:   ()       => api.post('/auth/logout'),
-  me:       ()       => api.get('/auth/me'),
+  login: (data) => api.post('/auth/login', data),
+  register: (data) => api.post('/auth/register', data),
+  logout: () => api.post('/auth/logout'),
+  me: () => api.get('/auth/me'),
 }
 
-/* Users */
 export const usersAPI = {
   getDoctors: () => api.get('/users/doctors'),
   getHealthRecord: () => api.get('/users/health-record'),
   updateHealthRecord: (body) => api.put('/users/health-record', body),
 }
 
-/* Appointments */
 export const appointmentsAPI = {
   list: () =>
     api.get('/auth/my-appointments', {
       params: { _t: Date.now() },
       headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
     }),
-  create:   (data)    => api.post('/auth/book-appointment', data),
-  update:   (id, data) => api.put(`/auth/update-appointment/${id}`, data),
-  delete:   (id)      => api.delete(`/auth/delete-appointment/${id}`),
+  create: (data) => api.post('/auth/book-appointment', data),
+  update: (id, data) => api.put(`/auth/update-appointment/${id}`, data),
+  delete: (id) => api.delete(`/auth/delete-appointment/${id}`),
 }
 
 export default api

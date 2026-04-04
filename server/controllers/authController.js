@@ -1,28 +1,41 @@
-const User = require("../models/user");
-const Appointment = require("../models/appointmentModel");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 
-const generateToken = (id) => {
-  return jwt.sign({ id: String(id) }, process.env.JWT_SECRET, {
+const User = require("../models/user");
+const Appointment = require("../models/appointmentModel");
+
+function signToken(userId) {
+  return jwt.sign({ id: String(userId) }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || "7d",
   });
-};
+}
 
-function userObjectId(req) {
+function currentUserObjectId(req) {
   return new mongoose.Types.ObjectId(String(req.user.id));
 }
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, phone, password, role, specialty, availabilityDays, availabilityHours } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      password,
+      role,
+      specialty,
+      availabilityDays,
+      availabilityHours,
+    } = req.body;
+
     if (!name || !email || !phone || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const emailExists = await User.findOne({ email: email.toLowerCase() });
-    if (emailExists) {
+
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
       return res.status(400).json({ message: "An account with this email already exists" });
     }
+
     const payload = {
       name,
       email: String(email).trim().toLowerCase(),
@@ -30,38 +43,50 @@ const registerUser = async (req, res) => {
       password,
       role,
     };
+
     if (role === "doctor") {
       payload.specialty = specialty || "";
       payload.availabilityDays = availabilityDays || "Mon – Fri";
       payload.availabilityHours = availabilityHours || "9:00 – 17:00";
     }
+
     const user = await User.create(payload);
-    const token = generateToken(user._id);
-    res.status(201).json({ success: true, message: "Account created", token, user });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const token = signToken(user._id);
+
+    res.status(201).json({
+      success: true,
+      message: "Account created",
+      token,
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
+
     const normalizedEmail = String(email)
       .replace(/[\u200B-\u200D\uFEFF]/g, "")
       .trim()
       .toLowerCase();
-    const pwd = String(password).trim();
+    const trimmedPassword = String(password).trim();
+
     const user = await User.findOne({ email: normalizedEmail });
-    if (!user || !(await user.matchPassword(pwd))) {
+    if (!user || !(await user.matchPassword(trimmedPassword))) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    const token = generateToken(user._id);
+
+    const token = signToken(user._id);
     res.status(200).json({ success: true, token, user });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -69,7 +94,7 @@ const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     res.status(200).json({ success: true, user });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -77,50 +102,60 @@ const getMe = async (req, res) => {
 const bookAppointment = async (req, res) => {
   try {
     const { date, time, service, doctorId } = req.body;
+
     if (!date || !time || !service) {
-      return res.status(400).json({ message: 'Date, time, and service are required' });
+      return res.status(400).json({ message: "Date, time, and service are required" });
     }
+
     let doctor = null;
-    if (doctorId != null && String(doctorId).trim() && mongoose.Types.ObjectId.isValid(String(doctorId))) {
-      doctor = new mongoose.Types.ObjectId(String(doctorId));
+    const rawDoctorId = doctorId != null ? String(doctorId).trim() : "";
+    if (rawDoctorId && mongoose.Types.ObjectId.isValid(rawDoctorId)) {
+      doctor = new mongoose.Types.ObjectId(rawDoctorId);
     }
+
     const appointment = await Appointment.create({
-      user: userObjectId(req),
+      user: currentUserObjectId(req),
       doctor,
       date: String(date),
       time: String(time),
       service: String(service),
-      status: 'pending',
+      status: "pending",
     });
+
     res.status(201).json({ success: true, appointment });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 const getMyAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({ user: userObjectId(req) })
+    const appointments = await Appointment.find({ user: currentUserObjectId(req) })
       .populate("doctor", "name specialty avatar")
       .sort({ date: 1, createdAt: 1 })
       .lean();
+
     res.status(200).json({ success: true, appointments });
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching appointments' });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching appointments" });
   }
 };
 
 const updateAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findOneAndUpdate(
-      { _id: req.params.id, user: userObjectId(req) },
+      { _id: req.params.id, user: currentUserObjectId(req) },
       req.body,
       { new: true, runValidators: true }
     );
-    if (!appointment) return res.status(404).json({ message: "Not found" });
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
     res.status(200).json({ success: true, appointment });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -128,21 +163,25 @@ const deleteAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findOneAndDelete({
       _id: req.params.id,
-      user: userObjectId(req),
+      user: currentUserObjectId(req),
     });
-    if (!appointment) return res.status(404).json({ message: "Not found" });
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
     res.status(200).json({ success: true, message: "Appointment deleted" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-module.exports = { 
-    registerUser, 
-    loginUser, 
-    getMe, 
-    bookAppointment, 
-    getMyAppointments,
-    updateAppointment,
-    deleteAppointment
+module.exports = {
+  registerUser,
+  loginUser,
+  getMe,
+  bookAppointment,
+  getMyAppointments,
+  updateAppointment,
+  deleteAppointment,
 };

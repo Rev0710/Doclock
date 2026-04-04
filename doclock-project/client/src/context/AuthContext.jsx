@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
-import api from '../services/api'
+import api from '../services/api.js'
 import { AuthContext } from './authContext.js'
 
-/** Strip invisible chars / stray whitespace — common on mobile autofill & paste. */
 function normalizeLoginEmail(raw) {
   return String(raw ?? '')
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
@@ -18,11 +17,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const setToken = (token) => {
+  const setAuthHeader = (token) => {
     if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      api.defaults.headers.common.Authorization = `Bearer ${token}`
     } else {
-      delete api.defaults.headers.common['Authorization']
+      delete api.defaults.headers.common.Authorization
     }
   }
 
@@ -34,33 +33,29 @@ export function AuthProvider({ children }) {
     } catch {
       /* ignore */
     }
-    setToken(null)
+    setAuthHeader(null)
     setUser(null)
   }
 
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('token')
-      const storedUser = localStorage.getItem('user')
+    const token = localStorage.getItem('token')
+    const storedUser = localStorage.getItem('user')
 
-      if (token && storedUser) {
-        try {
-          setToken(token)
-          setUser(JSON.parse(storedUser))
-        } catch (err) {
-          console.error('Session expired or invalid')
-          logout()
-        }
+    if (token && storedUser) {
+      try {
+        setAuthHeader(token)
+        setUser(JSON.parse(storedUser))
+      } catch {
+        console.error('Session data invalid; signing out.')
+        logout()
       }
-      setLoading(false)
     }
-
-    initAuth()
+    setLoading(false)
   }, [])
 
   useEffect(() => {
     const onAuthLost = () => {
-      setToken(null)
+      setAuthHeader(null)
       setUser(null)
     }
     window.addEventListener('doclock:auth-lost', onAuthLost)
@@ -74,7 +69,7 @@ export function AuthProvider({ children }) {
     })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
-    setToken(data.token)
+    setAuthHeader(data.token)
     setUser(data.user)
     return data.user
   }
@@ -84,7 +79,7 @@ export function AuthProvider({ children }) {
     const { data } = await api.post('/auth/register', body)
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
-    setToken(data.token)
+    setAuthHeader(data.token)
     setUser(data.user)
     return data.user
   }
@@ -102,7 +97,18 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, deleteProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated: Boolean(user),
+        login,
+        register,
+        logout,
+        updateProfile,
+        deleteProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

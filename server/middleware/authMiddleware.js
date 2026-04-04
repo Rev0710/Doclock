@@ -1,33 +1,35 @@
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+
+function extractBearerToken(authHeader) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null;
+  }
+  return authHeader.split(" ")[1];
+}
 
 const protect = (req, res, next) => {
-    let token;
+  const token = extractBearerToken(req.headers.authorization);
 
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        try {
-            token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const rawId = decoded.id ?? decoded._id ?? decoded.userId;
-            const id = rawId != null ? String(rawId).trim() : '';
+  if (!token) {
+    return res.status(401).json({ message: "Not authorized, no token provided" });
+  }
 
-            if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-                return res.status(401).json({ message: 'Not authorized, invalid token' });
-            }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const rawId = decoded.id ?? decoded._id ?? decoded.userId;
+    const id = rawId != null ? String(rawId).trim() : "";
 
-            // `id` and `_id`: auth routes use .id; some legacy routes used ._id (was always undefined before).
-            req.user = { id, _id: id };
-
-            next();
-        } catch (error) {
-            console.error('Token Verification Error:', error.message);
-            return res.status(401).json({ message: 'Not authorized, token failed' });
-        }
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(401).json({ message: "Not authorized, invalid token" });
     }
 
-    if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token provided' });
-    }
+    req.user = { id, _id: id };
+    next();
+  } catch (err) {
+    console.error("Token verification failed:", err.message);
+    return res.status(401).json({ message: "Not authorized, token failed" });
+  }
 };
 
 module.exports = { protect };

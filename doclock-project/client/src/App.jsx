@@ -1,26 +1,25 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
-import { AuthProvider } from './context/AuthContext.jsx';
-import { AppointmentProvider } from './context/AppointmentContext.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
+import { AuthProvider } from './context/AuthContext.jsx'
+import { AppointmentProvider } from './context/AppointmentContext.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
-import Landing from './sections/Landing.jsx';
-import Login from './sections/Login.jsx';
-import Register from './sections/Register.jsx';
-import UploadPhoto from './sections/uploadPhoto.jsx';
-import Home from './sections/Home.jsx';
-import SerApntmt from './sections/serApntmt.jsx';
-import Available from './sections/Available.jsx';
-import Booked from './sections/Booked.jsx';
-import Appointments from './sections/Appointments.jsx';
-import HealthRecord from './sections/HealthRecord.jsx';
-import Admin from './sections/admin.jsx';
-import AppShell from './components/AppShell.jsx';
+import Landing from './sections/Landing.jsx'
+import Login from './sections/Login.jsx'
+import Register from './sections/Register.jsx'
+import UploadPhoto from './sections/uploadPhoto.jsx'
+import Home from './sections/Home.jsx'
+import SerApntmt from './sections/serApntmt.jsx'
+import Available from './sections/Available.jsx'
+import Booked from './sections/Booked.jsx'
+import Appointments from './sections/Appointments.jsx'
+import HealthRecord from './sections/HealthRecord.jsx'
+import Admin from './sections/admin.jsx'
+import AppShell from './components/AppShell.jsx'
 
-import './index.css';
+import './index.css'
 
-const signedInRoles = ['user', 'patient', 'admin', 'doctor', 'staff'];
+const SIGNED_IN_ROLES = ['user', 'patient', 'admin', 'doctor', 'staff']
 
 export default function App() {
   return (
@@ -33,7 +32,7 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
-              <Route element={<ProtectedRoute allowedRoles={signedInRoles} />}>
+              <Route element={<ProtectedRoute allowedRoles={SIGNED_IN_ROLES} />}>
                 <Route path="/upload-photo" element={<UploadPhoto />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/health-record" element={<HealthRecord />} />
@@ -53,5 +52,5 @@ export default function App() {
         </BrowserRouter>
       </AppointmentProvider>
     </AuthProvider>
-  );
+  )
 }

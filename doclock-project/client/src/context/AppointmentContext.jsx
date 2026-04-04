@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { appointmentsAPI } from '../services/api'
+import { appointmentsAPI } from '../services/api.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { AppointmentContext } from './appointmentContext.js'
 
-function appointmentsFromResponseBody(data) {
-  if (data == null) return []
-  if (Array.isArray(data)) return data
-  if (Array.isArray(data.appointments)) return data.appointments
-  if (Array.isArray(data.data)) return data.data
-  if (data.data && Array.isArray(data.data.appointments)) return data.data.appointments
+function normalizeAppointmentList(payload) {
+  if (payload == null) return []
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload.appointments)) return payload.appointments
+  if (Array.isArray(payload.data)) return payload.data
+  if (payload.data && Array.isArray(payload.data.appointments)) return payload.data.appointments
   return []
 }
 
@@ -23,11 +23,10 @@ export function AppointmentProvider({ children }) {
     setLoadError('')
     try {
       const res = await appointmentsAPI.list()
-      const list = appointmentsFromResponseBody(res.data)
-      setAppointments(list)
-    } catch (error) {
-      console.error('Failed to load appointments:', error)
-      setLoadError(error.response?.data?.message || error.message || 'Could not load appointments')
+      setAppointments(normalizeAppointmentList(res.data))
+    } catch (err) {
+      console.error('Failed to load appointments:', err)
+      setLoadError(err.response?.data?.message || err.message || 'Could not load appointments')
       setAppointments([])
     } finally {
       setLoading(false)
@@ -59,10 +58,10 @@ export function AppointmentProvider({ children }) {
       })
       await loadAppointments()
       return { success: true }
-    } catch (error) {
+    } catch (err) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Booking failed',
+        message: err.response?.data?.message || 'Booking failed',
       }
     }
   }
@@ -72,8 +71,8 @@ export function AppointmentProvider({ children }) {
       await appointmentsAPI.delete(id)
       await loadAppointments()
       return { success: true }
-    } catch (error) {
-      console.error('Delete failed:', error)
+    } catch (err) {
+      console.error('Delete failed:', err)
       return { success: false }
     }
   }
@@ -83,8 +82,8 @@ export function AppointmentProvider({ children }) {
       await appointmentsAPI.update(id, payload)
       await loadAppointments()
       return { success: true }
-    } catch (error) {
-      console.error('Update failed:', error)
+    } catch (err) {
+      console.error('Update failed:', err)
       return { success: false }
     }
   }

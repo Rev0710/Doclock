@@ -17,7 +17,7 @@ export default function AppointmentCard({ appointment, onCancel, onView }) {
   const { label: statusLabel, cls: statusCls } =
     statusMap[status] || statusMap.pending;
 
-  // FIXED: Support all possible backend field names
+  // Populated doctor, legacy `doctorName`, or service-only booking string
   const doctorName =
     appointment.doctorName ||
     appointment.doctor ||

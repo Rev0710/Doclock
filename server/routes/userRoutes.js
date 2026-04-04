@@ -1,36 +1,10 @@
-const express = require("express")
-const { protect } = require("../middleware/authMiddleware")
-const User = require("../models/user")
+const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
+const User = require("../models/user");
+const { mergeHealthProfile, applyHealthRecordBody } = require("../utils/healthProfile");
 
-const router = express.Router()
+const router = express.Router();
 
-const MAX_BP = 30
-const MAX_LABS = 40
-const MAX_MEDS = 40
-
-function mergeHealthProfile(hp) {
-  const base = {
-    heightCm: null,
-    weightKg: null,
-    weightRecordedAt: null,
-    bloodPressureReadings: [],
-    labResults: [],
-    medications: [],
-  }
-  if (!hp || typeof hp !== "object") return base
-  return {
-    ...base,
-    heightCm: hp.heightCm != null ? hp.heightCm : null,
-    weightKg: hp.weightKg != null ? hp.weightKg : null,
-    weightRecordedAt: hp.weightRecordedAt ?? null,
-    bloodPressureReadings: Array.isArray(hp.bloodPressureReadings) ? hp.bloodPressureReadings : [],
-    labResults: Array.isArray(hp.labResults) ? hp.labResults : [],
-    medications: Array.isArray(hp.medications) ? hp.medications : [],
-  }
-}
-
-// @desc  List doctors (for patient booking UI)
-// @route GET /api/users/doctors
 router.get("/doctors", protect, async (req, res) => {
   try {
     const doctors = await User.find({ role: "doctor" })
@@ -38,125 +12,72 @@ router.get("/doctors", protect, async (req, res) => {
       .sort({ name: 1 })
       .lean();
 
-    const list = doctors.map((d) => {
-      const rawName = String(d.name || "").trim();
+    const list = doctors.map((doc) => {
+      const rawName = String(doc.name || "").trim();
       const displayName = /^dr\.?\s/i.test(rawName) ? rawName : `Dr. ${rawName || "Doctor"}`;
-      const locationParts = [d.city, d.state, d.country].filter(Boolean);
-      const cityLine = locationParts.length ? locationParts.join(", ") : d.address || "Location not set";
+      const locationParts = [doc.city, doc.state, doc.country].filter(Boolean);
+      const cityLine = locationParts.length
+        ? locationParts.join(", ")
+        : doc.address || "Location not set";
 
       return {
-        id: String(d._id),
+        id: String(doc._id),
         name: displayName,
-        tag: d.specialty || "Doctor",
+        tag: doc.specialty || "Doctor",
         city: cityLine,
-        days: d.availabilityDays || "Mon – Fri",
-        time: d.availabilityHours || "9:00 – 17:00",
-        avatar: typeof d.avatar === "string" ? d.avatar : "",
+        days: doc.availabilityDays || "Mon – Fri",
+        time: doc.availabilityHours || "9:00 – 17:00",
+        avatar: typeof doc.avatar === "string" ? doc.avatar : "",
       };
     });
 
     res.json({ success: true, doctors: list });
-  } catch (error) {
-    res.status(500).json({ message: error.message || "Error fetching doctors" });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Error fetching doctors" });
   }
 });
 
-// @desc  Patient health record (vitals, labs, medications)
-// @route GET /api/users/health-record
 router.get("/health-record", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("healthProfile").lean()
-    if (!user) return res.status(404).json({ message: "User not found" })
-    const healthProfile = mergeHealthProfile(user.healthProfile)
-    res.json({ success: true, healthProfile })
-  } catch (error) {
-    res.status(500).json({ message: error.message || "Error loading health record" })
+    const user = await User.findById(req.user.id).select("healthProfile").lean();
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ success: true, healthProfile: mergeHealthProfile(user.healthProfile) });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Error loading health record" });
   }
-})
+});
 
-// @desc  Update health record (replace sections when provided)
-// @route PUT /api/users/health-record
 router.put("/health-record", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-    if (!user) return res.status(404).json({ message: "User not found" })
-
-    const {
-      heightCm,
-      weightKg,
-      weightRecordedAt,
-      bloodPressureReadings,
-      labResults,
-      medications,
-    } = req.body
-
-    if (!user.healthProfile) user.healthProfile = {}
-
-    if (heightCm !== undefined) {
-      if (heightCm === null || heightCm === "") user.healthProfile.heightCm = null
-      else {
-        const n = Number(heightCm)
-        user.healthProfile.heightCm = Number.isFinite(n) ? n : null
-      }
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    if (weightKg !== undefined) {
-      if (weightKg === null || weightKg === "") {
-        user.healthProfile.weightKg = null
-        user.healthProfile.weightRecordedAt = undefined
-      } else {
-        const n = Number(weightKg)
-        user.healthProfile.weightKg = Number.isFinite(n) ? n : null
-        if (user.healthProfile.weightKg != null) {
-          user.healthProfile.weightRecordedAt = weightRecordedAt
-            ? new Date(weightRecordedAt)
-            : new Date()
-        }
-      }
+    const result = applyHealthRecordBody(user, req.body);
+    if (!result.ok) {
+      return res.status(result.status).json({ message: result.message });
     }
 
-    if (bloodPressureReadings !== undefined) {
-      if (!Array.isArray(bloodPressureReadings)) {
-        return res.status(400).json({ message: "bloodPressureReadings must be an array" })
-      }
-      user.healthProfile.bloodPressureReadings = bloodPressureReadings.slice(0, MAX_BP)
-    }
-
-    if (labResults !== undefined) {
-      if (!Array.isArray(labResults)) {
-        return res.status(400).json({ message: "labResults must be an array" })
-      }
-      user.healthProfile.labResults = labResults.slice(0, MAX_LABS)
-    }
-
-    if (medications !== undefined) {
-      if (!Array.isArray(medications)) {
-        return res.status(400).json({ message: "medications must be an array" })
-      }
-      user.healthProfile.medications = medications.slice(0, MAX_MEDS)
-    }
-
-    await user.save()
-    const fresh = await User.findById(req.user.id).select("healthProfile").lean()
-    res.json({ success: true, healthProfile: mergeHealthProfile(fresh.healthProfile) })
-  } catch (error) {
-    res.status(500).json({ message: error.message || "Error saving health record" })
+    await user.save();
+    const fresh = await User.findById(req.user.id).select("healthProfile").lean();
+    res.json({ success: true, healthProfile: mergeHealthProfile(fresh.healthProfile) });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Error saving health record" });
   }
-})
+});
 
-// @desc  Get logged-in user profile
-// @route GET /api/users/profile
 router.get("/profile", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password")
-    res.json({ success: true, user })
-  } catch (error) {
-    res.status(500).json({ message: "Server error" })
+    const user = await User.findById(req.user.id).select("-password");
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-})
+});
 
-// @desc  Update logged-in user profile
-// @route PUT /api/users/profile
 router.put("/profile", protect, async (req, res) => {
   try {
     const {
@@ -174,78 +95,93 @@ router.put("/profile", protect, async (req, res) => {
       avatar,
       gender,
       birthDate,
-    } = req.body
+    } = req.body;
 
-    const user = await User.findById(req.user.id)
-    if (!user) return res.status(404).json({ message: "User not found" })
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    // Check duplicate email (exclude current user)
     if (email && email !== user.email) {
-      const emailExists = await User.findOne({ email: email.toLowerCase(), _id: { $ne: user._id } })
-      if (emailExists) return res.status(400).json({ message: "This email is already used by another account" })
-    }
-
-    // Check duplicate phone (exclude current user)
-    if (phone && phone !== user.phone) {
-      const phoneExists = await User.findOne({ phone, _id: { $ne: user._id } })
-      if (phoneExists) return res.status(400).json({ message: "This phone number is already used by another account" })
-    }
-
-    // Update fields
-    if (name) user.name = name
-    if (email) user.email = email.toLowerCase()
-    if (phone) user.phone = phone
-    if (city !== undefined) user.city = city
-    if (address !== undefined) user.address = address
-    if (state !== undefined) user.state = state
-    if (country !== undefined) user.country = country
-    if (user.role === "doctor") {
-      if (specialty !== undefined) user.specialty = specialty
-      if (availabilityDays !== undefined) user.availabilityDays = availabilityDays
-      if (availabilityHours !== undefined) user.availabilityHours = availabilityHours
-    }
-
-    if (avatar !== undefined) {
-      if (avatar === null || avatar === "") user.avatar = ""
-      else if (typeof avatar === "string") user.avatar = avatar
-    }
-    if (gender !== undefined) user.gender = gender
-    if (birthDate !== undefined) {
-      if (!birthDate) user.birthDate = undefined
-      else {
-        const d = new Date(birthDate)
-        if (!Number.isNaN(d.getTime())) user.birthDate = d
+      const taken = await User.findOne({ email: email.toLowerCase(), _id: { $ne: user._id } });
+      if (taken) {
+        return res.status(400).json({ message: "This email is already used by another account" });
       }
     }
 
-    // Plain text; User model pre('save') hashes it (avoid double-hash)
+    if (phone && phone !== user.phone) {
+      const taken = await User.findOne({ phone, _id: { $ne: user._id } });
+      if (taken) {
+        return res.status(400).json({ message: "This phone number is already used by another account" });
+      }
+    }
+
+    if (name) user.name = name;
+    if (email) user.email = email.toLowerCase();
+    if (phone) user.phone = phone;
+    if (city !== undefined) user.city = city;
+    if (address !== undefined) user.address = address;
+    if (state !== undefined) user.state = state;
+    if (country !== undefined) user.country = country;
+
+    if (user.role === "doctor") {
+      if (specialty !== undefined) user.specialty = specialty;
+      if (availabilityDays !== undefined) user.availabilityDays = availabilityDays;
+      if (availabilityHours !== undefined) user.availabilityHours = availabilityHours;
+    }
+
+    if (avatar !== undefined) {
+      if (avatar === null || avatar === "") {
+        user.avatar = "";
+      } else if (typeof avatar === "string") {
+        user.avatar = avatar;
+      }
+    }
+
+    if (gender !== undefined) user.gender = gender;
+
+    if (birthDate !== undefined) {
+      if (!birthDate) {
+        user.birthDate = undefined;
+      } else {
+        const d = new Date(birthDate);
+        if (!Number.isNaN(d.getTime())) {
+          user.birthDate = d;
+        }
+      }
+    }
+
     if (password && password.length >= 8) {
-      user.password = password
+      user.password = password;
     }
 
-    await user.save()
-    const fresh = await User.findById(req.user.id).select("-password")
-    const userResponse = fresh.toJSON()
-
-    res.json({ success: true, message: "Profile updated successfully", user: userResponse })
-  } catch (error) {
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0]
-      return res.status(400).json({ message: `This ${field} is already registered` })
+    await user.save();
+    const updated = await User.findById(req.user.id).select("-password");
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updated.toJSON(),
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
+      return res.status(400).json({ message: `This ${field} is already registered` });
     }
-    res.status(500).json({ message: error.message || "Server error" })
-  }
-})
-router.delete("/profile", protect, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    await user.deleteOne();
-    res.json({ success: true, message: "Account deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message || "Server error" });
+    res.status(500).json({ message: err.message || "Server error" });
   }
 });
 
-module.exports = router
+router.delete("/profile", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await user.deleteOne();
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+});
+
+module.exports = router;
